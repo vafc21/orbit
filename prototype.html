@@ -1,0 +1,3846 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Orbit - Student Hub Prototype</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f2ec;
+        --bg-alt: #f1f4f8;
+        --surface: #ffffff;
+        --surface-2: #f2f5f9;
+        --surface-3: #e8eef6;
+        --border: rgba(15, 23, 42, 0.1);
+        --text: #0f172a;
+        --muted: #586176;
+        --accent: #16b79a;
+        --accent-2: #f4b860;
+        --accent-3: #2c7be5;
+        --danger: #e15454;
+        --success: #2fbf8b;
+        --shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+        --shadow-soft: 0 16px 40px rgba(15, 23, 42, 0.08);
+        --radius-lg: 20px;
+        --radius-md: 14px;
+        --radius-sm: 10px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Avenir Next", "Optima", "Trebuchet MS", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+        line-height: 1.5;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          radial-gradient(circle at 12% 18%, rgba(22, 183, 154, 0.18), transparent 55%),
+          radial-gradient(circle at 88% 14%, rgba(44, 123, 229, 0.16), transparent 52%),
+          radial-gradient(circle at 20% 82%, rgba(244, 184, 96, 0.18), transparent 60%),
+          linear-gradient(160deg, rgba(255, 255, 255, 0.92) 0%, rgba(245, 242, 236, 0.96) 45%, rgba(235, 244, 247, 0.96) 100%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      body.midnight::before {
+        background-image:
+          radial-gradient(circle at 15% 20%, rgba(22, 183, 154, 0.12), transparent 55%),
+          radial-gradient(circle at 85% 10%, rgba(44, 123, 229, 0.12), transparent 50%),
+          radial-gradient(circle at 20% 80%, rgba(244, 184, 96, 0.12), transparent 60%),
+          linear-gradient(160deg, rgba(10, 14, 22, 0.92) 0%, rgba(11, 17, 26, 0.96) 45%, rgba(9, 15, 24, 0.96) 100%);
+      }
+
+      body.midnight {
+        color-scheme: dark;
+        --bg: #0b1118;
+        --bg-alt: #0f1826;
+        --surface: #151f30;
+        --surface-2: #1c2738;
+        --surface-3: #243146;
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #f5f7fb;
+        --muted: #a0abc0;
+        --shadow: 0 22px 50px rgba(0, 0, 0, 0.45);
+        --shadow-soft: 0 18px 36px rgba(0, 0, 0, 0.35);
+      }
+
+      body.reduce-motion * {
+        animation: none !important;
+        transition: none !important;
+      }
+
+      .app {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 1fr;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        display: none;
+        padding: 24px;
+        background: var(--bg-alt);
+        border-right: 1px solid var(--border);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+
+      .brand-mark {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        background: linear-gradient(140deg, var(--accent), var(--accent-3));
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        color: #0b0f16;
+        letter-spacing: 0.04em;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 1.2rem;
+      }
+
+      .brand p {
+        margin: 2px 0 0;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .nav-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .nav-button {
+        background: transparent;
+        border: 1px solid transparent;
+        color: var(--muted);
+        padding: 12px 14px;
+        border-radius: 12px;
+        text-align: left;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      .nav-button.active {
+        background: rgba(22, 183, 154, 0.16);
+        color: var(--text);
+        border-color: rgba(22, 183, 154, 0.4);
+      }
+
+      .sidebar-footer {
+        margin-top: 24px;
+        padding: 14px;
+        border-radius: var(--radius-md);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .sidebar-footer p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .sidebar-footer strong {
+        color: var(--text);
+      }
+
+      .status-chip {
+        display: inline-flex;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(22, 183, 154, 0.16);
+        color: var(--text);
+        font-size: 0.78rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+
+      .content {
+        padding: 20px 20px 100px;
+        display: grid;
+        gap: 24px;
+      }
+
+      .mobile-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .mobile-brand .brand-mark {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+      }
+
+      .mobile-brand strong {
+        display: block;
+        font-size: 1rem;
+      }
+
+      .mobile-brand small {
+        display: block;
+        color: var(--muted);
+        font-size: 0.75rem;
+        margin-top: 2px;
+      }
+
+      .topbar {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 16px 18px;
+        box-shadow: var(--shadow-soft);
+      }
+
+      .headline {
+        display: grid;
+        gap: 4px;
+      }
+
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.3em;
+        font-size: 0.65rem;
+        color: var(--muted);
+      }
+
+      .topbar h2 {
+        margin: 0;
+        font-size: 1.6rem;
+      }
+
+      .topbar p {
+        margin: 4px 0 0;
+        color: var(--muted);
+      }
+
+      .top-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .user-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 6px 12px 6px 6px;
+      }
+
+      .user-chip strong {
+        display: block;
+        font-size: 0.9rem;
+      }
+
+      .user-chip small {
+        display: block;
+        font-size: 0.7rem;
+        color: var(--muted);
+      }
+
+      .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 0.75rem;
+        color: #fff;
+        background: linear-gradient(135deg, var(--accent), var(--accent-3));
+      }
+
+      .pill {
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(244, 184, 96, 0.25);
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+
+      .ghost-button,
+      .primary-button {
+        border-radius: 12px;
+        padding: 10px 14px;
+        border: 1px solid transparent;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      .primary-button {
+        background: var(--accent);
+        color: #fff;
+        box-shadow: 0 10px 24px rgba(22, 183, 154, 0.25);
+      }
+
+      .ghost-button {
+        background: transparent;
+        border-color: var(--border);
+        color: var(--text);
+      }
+
+      .ghost-button:hover,
+      .primary-button:hover {
+        transform: translateY(-1px);
+      }
+
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .page {
+        display: none;
+        animation: floatIn 0.4s ease;
+      }
+
+      .page.active {
+        display: grid;
+        gap: 20px;
+      }
+
+      @keyframes floatIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 18px;
+        box-shadow: var(--shadow-soft);
+      }
+
+      .card h3 {
+        margin: 0 0 10px;
+        font-size: 1.1rem;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .segmented {
+        display: inline-flex;
+        gap: 6px;
+        background: var(--surface-2);
+        border-radius: 999px;
+        padding: 6px;
+        border: 1px solid var(--border);
+      }
+
+      .segmented button {
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .segmented button.active {
+        background: rgba(45, 226, 166, 0.2);
+        color: var(--text);
+      }
+
+      .schedule-layout {
+        display: grid;
+        gap: 16px;
+      }
+
+      .schedule-side {
+        display: grid;
+        gap: 16px;
+      }
+
+      .schedule-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .schedule-day {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        padding: 12px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .schedule-day h4 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .class-item {
+        background: var(--surface-2);
+        border: 1px solid transparent;
+        border-left: 4px solid var(--accent-color);
+        padding: 10px;
+        border-radius: 12px;
+        color: var(--text);
+        text-align: left;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      .class-item small {
+        display: block;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      .class-item:hover,
+      .class-item.active {
+        border-color: rgba(15, 23, 42, 0.08);
+        background: var(--surface-3);
+      }
+
+      .details-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .details-grid div {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        color: var(--muted);
+      }
+
+      .details-grid strong {
+        color: var(--text);
+      }
+
+      .countdown-time {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 12px 0 6px;
+      }
+
+      .countdown-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .schedule-form {
+        display: grid;
+        gap: 10px;
+      }
+
+      .schedule-form input,
+      .schedule-form select {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px 12px;
+        color: var(--text);
+        font-family: inherit;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(44, 123, 229, 0.16);
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      .chat-layout {
+        display: grid;
+        gap: 16px;
+      }
+
+      .chat-class-list {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+
+      .chat-class-list button {
+        min-width: 140px;
+        background: var(--surface-2);
+        border: 1px solid transparent;
+        border-radius: 14px;
+        padding: 12px;
+        color: var(--text);
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .chat-class-list button.active {
+        border-color: rgba(44, 123, 229, 0.5);
+        background: rgba(44, 123, 229, 0.12);
+      }
+
+      .chat-thread {
+        display: grid;
+        gap: 12px;
+      }
+
+      .chat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .chat-messages {
+        max-height: 320px;
+        overflow-y: auto;
+        display: grid;
+        gap: 10px;
+        padding-right: 6px;
+      }
+
+      .message {
+        background: var(--surface-2);
+        border-radius: 14px;
+        padding: 10px 12px;
+        width: fit-content;
+        max-width: 80%;
+        border: 1px solid var(--border);
+      }
+
+      .message.mine {
+        margin-left: auto;
+        background: rgba(22, 183, 154, 0.2);
+        border-color: rgba(22, 183, 154, 0.35);
+      }
+
+      .message small {
+        display: block;
+        color: var(--muted);
+        margin-top: 4px;
+        font-size: 0.75rem;
+      }
+
+      .chat-input {
+        display: flex;
+        gap: 10px;
+      }
+
+      .chat-input input {
+        flex: 1;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px 12px;
+        color: var(--text);
+      }
+
+      .chat-input button {
+        background: var(--accent);
+        border: none;
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-weight: 600;
+        cursor: pointer;
+        color: #fff;
+      }
+
+      .study-stage {
+        display: none;
+        gap: 20px;
+      }
+
+      .study-stage.active {
+        display: grid;
+        animation: stageIn 0.45s ease;
+      }
+
+      .study-hero {
+        display: grid;
+        gap: 12px;
+      }
+
+      .study-hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .study-selection-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .study-select-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .study-select-card {
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        border-radius: 16px;
+        padding: 14px;
+        text-align: left;
+        display: grid;
+        gap: 8px;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        animation: riseIn 0.35s ease both;
+      }
+
+      .study-select-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .study-select-card.active {
+        border-color: rgba(22, 183, 154, 0.5);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .study-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .study-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+
+      .study-chip.public {
+        background: rgba(22, 183, 154, 0.2);
+        color: var(--text);
+      }
+
+      .study-chip.private {
+        background: rgba(148, 163, 184, 0.2);
+        color: var(--muted);
+      }
+
+      .study-modes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .study-modes button {
+        background: var(--surface-2);
+        border: 1px solid transparent;
+        color: var(--muted);
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+      }
+
+      .study-modes button.active {
+        color: var(--text);
+        border-color: rgba(244, 184, 96, 0.6);
+        background: rgba(244, 184, 96, 0.25);
+        box-shadow: 0 10px 20px rgba(244, 184, 96, 0.2);
+      }
+
+      .study-modes button:hover {
+        transform: translateY(-1px);
+      }
+
+      .study-set-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .study-set-list,
+      .study-card-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .study-set-card,
+      .study-card-item {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 12px;
+        display: grid;
+        gap: 8px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        animation: riseIn 0.3s ease both;
+      }
+
+      .study-set-card {
+        cursor: pointer;
+      }
+
+      .study-set-card:hover,
+      .study-card-item:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .study-set-card.active {
+        border-color: rgba(22, 183, 154, 0.45);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .study-set-card .actions,
+      .study-card-item .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .study-card-meta {
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+
+      .study-form {
+        display: grid;
+        gap: 10px;
+      }
+
+      .study-form label {
+        display: grid;
+        gap: 6px;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      .study-form input,
+      .study-form textarea {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px 12px;
+        color: var(--text);
+        font-family: inherit;
+      }
+
+      .study-form textarea {
+        min-height: 90px;
+        resize: vertical;
+      }
+
+      .study-form .toggle-inline {
+        align-items: center;
+      }
+
+      .study-panel-header {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .study-panel-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .study-panel-actions input[type="number"] {
+        width: 90px;
+      }
+
+      .toggle-inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+
+      .toggle-inline input {
+        accent-color: var(--accent);
+      }
+
+      .study-empty {
+        border: 1px dashed var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        color: var(--muted);
+      }
+
+      .study-panel {
+        display: none;
+      }
+
+      .study-panel.active {
+        display: grid;
+        gap: 14px;
+        animation: panelIn 0.4s ease;
+      }
+
+      .flashcard {
+        position: relative;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        min-height: 160px;
+        cursor: pointer;
+        perspective: 1000px;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .flashcard:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .flashcard-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.4s ease;
+        transform-style: preserve-3d;
+      }
+
+      .flashcard.flipped .flashcard-inner {
+        transform: rotateY(180deg);
+      }
+
+      .flashcard-face {
+        backface-visibility: hidden;
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font-size: 1.2rem;
+        padding: 12px;
+      }
+
+      .flashcard-back {
+        transform: rotateY(180deg);
+        color: var(--accent-3);
+      }
+
+      .flashcard-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .flashcard-controls button {
+        background: var(--surface-3);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+
+      .matching-board {
+        display: grid;
+        gap: 14px;
+      }
+
+      .matching-columns {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .matching-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .matching-item {
+        border-radius: 12px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text);
+        cursor: pointer;
+        transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+      }
+
+      .matching-item:hover {
+        transform: translateY(-1px);
+      }
+
+      .matching-item.selected {
+        border-color: rgba(44, 123, 229, 0.6);
+        background: rgba(44, 123, 229, 0.18);
+      }
+
+      .matching-item.matched {
+        border-color: rgba(22, 183, 154, 0.6);
+        background: rgba(22, 183, 154, 0.18);
+        color: var(--text);
+      }
+
+      .quiz-card {
+        display: grid;
+        gap: 12px;
+      }
+
+      .quiz-options {
+        display: grid;
+        gap: 8px;
+      }
+
+      .quiz-options button {
+        border-radius: 12px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text);
+        cursor: pointer;
+        text-align: left;
+        transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+      }
+
+      .quiz-options button:hover {
+        transform: translateY(-1px);
+      }
+
+      .quiz-options button.correct {
+        border-color: rgba(22, 183, 154, 0.6);
+        background: rgba(22, 183, 154, 0.2);
+      }
+
+      .quiz-options button.incorrect {
+        border-color: rgba(255, 107, 107, 0.6);
+        background: rgba(255, 107, 107, 0.2);
+      }
+
+      .todo-layout {
+        display: grid;
+        gap: 16px;
+      }
+
+      .todo-form {
+        display: grid;
+        gap: 12px;
+      }
+
+      .todo-form input,
+      .todo-form select,
+      .todo-form textarea {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px 12px;
+        color: var(--text);
+        font-family: inherit;
+      }
+
+      .todo-form textarea {
+        min-height: 80px;
+        resize: vertical;
+      }
+
+      .todo-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .todo-item {
+        border-radius: 14px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        display: grid;
+        gap: 8px;
+      }
+
+      .todo-item.overdue {
+        border-color: rgba(255, 107, 107, 0.6);
+      }
+
+      .todo-item.today {
+        border-color: rgba(255, 179, 71, 0.6);
+      }
+
+      .todo-item.upcoming {
+        border-color: rgba(255, 179, 71, 0.6);
+      }
+
+      .todo-item.completed {
+        opacity: 0.6;
+        text-decoration: line-through;
+      }
+
+      .todo-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .todo-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .todo-actions button {
+        border-radius: 10px;
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        background: var(--surface-3);
+        color: var(--text);
+        cursor: pointer;
+      }
+
+      .filter-row {
+        display: grid;
+        gap: 10px;
+      }
+
+      .profile-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .profile-card {
+        display: grid;
+        gap: 10px;
+      }
+
+      .settings-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        background: var(--surface-2);
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+      }
+
+      .toggle input {
+        appearance: none;
+        width: 44px;
+        height: 24px;
+        background: rgba(15, 23, 42, 0.08);
+        border-radius: 999px;
+        position: relative;
+        outline: none;
+        cursor: pointer;
+      }
+
+      .toggle input::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #fff;
+        transition: 0.2s ease;
+      }
+
+      .toggle input:checked {
+        background: rgba(45, 226, 166, 0.4);
+      }
+
+      .toggle input:checked::after {
+        transform: translateX(20px);
+      }
+
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.95);
+        border-top: 1px solid var(--border);
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        padding: 8px 10px 14px;
+        z-index: 10;
+        box-shadow: 0 -12px 30px rgba(15, 23, 42, 0.08);
+      }
+
+      .bottom-nav button {
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        font-weight: 600;
+        padding: 8px;
+        cursor: pointer;
+      }
+
+      .bottom-nav button.active {
+        color: var(--text);
+      }
+
+      @keyframes stageIn {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes riseIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @keyframes panelIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      body.midnight .class-item:hover,
+      body.midnight .class-item.active {
+        border-color: rgba(255, 255, 255, 0.08);
+      }
+
+      body.midnight .toggle input {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      body.midnight .bottom-nav {
+        background: rgba(16, 23, 37, 0.96);
+        box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.35);
+      }
+
+      @media (min-width: 900px) {
+        .app {
+          grid-template-columns: 260px 1fr;
+        }
+
+        .sidebar {
+          display: block;
+          min-height: 100vh;
+        }
+
+        .content {
+          padding: 28px 32px 40px;
+        }
+
+        .mobile-brand {
+          display: none;
+        }
+
+        .topbar {
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .schedule-layout {
+          grid-template-columns: 2fr 1fr;
+        }
+
+        .schedule-grid {
+          grid-template-columns: repeat(5, minmax(160px, 1fr));
+        }
+
+        .chat-layout {
+          grid-template-columns: 240px 1fr;
+        }
+
+        .chat-class-list {
+          flex-direction: column;
+          overflow: visible;
+        }
+
+        .study-set-grid {
+          grid-template-columns: 1.2fr 1fr;
+          align-items: start;
+        }
+
+        .study-selection-grid {
+          grid-template-columns: 1.1fr 0.9fr;
+        }
+
+        .study-panel-header {
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .matching-columns {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .filter-row {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .bottom-nav {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">OR</div>
+          <div>
+            <h1>Orbit</h1>
+            <p>All-in-one student hub</p>
+          </div>
+        </div>
+        <nav class="nav-list">
+          <button class="nav-button active" data-page-target="schedule">Schedule</button>
+          <button class="nav-button" data-page-target="chat">Chat</button>
+          <button class="nav-button" data-page-target="study">Study</button>
+          <button class="nav-button" data-page-target="todo">To-Do</button>
+          <button class="nav-button" data-page-target="profile">Profile</button>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="status-chip">Synced · Just now</div>
+          <p><strong id="sidebar-name">Jordan Lee</strong> · Schedule ready for the week.</p>
+        </div>
+      </aside>
+
+      <main class="content">
+        <div class="mobile-brand">
+          <div class="brand-mark">OR</div>
+          <div>
+            <strong>Orbit</strong>
+            <small id="mobile-user">Signed in</small>
+          </div>
+        </div>
+        <header class="topbar">
+          <div class="headline">
+            <span class="eyebrow">Signed in</span>
+            <h2 id="page-title">Schedule</h2>
+            <p id="page-subtitle">Plan the week, check in with classmates, and stay on top of everything.</p>
+          </div>
+          <div class="top-actions">
+            <div class="pill" id="today-pill">Tuesday · 2 classes left</div>
+            <button class="ghost-button" type="button">Share schedule</button>
+            <div class="user-chip">
+              <div class="avatar" id="user-avatar">JL</div>
+              <div>
+                <strong id="user-name">Jordan Lee</strong>
+                <small id="user-grade">11th grade</small>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <section class="page active" data-page="schedule">
+          <div class="card">
+            <h3>Weekly schedule</h3>
+            <p class="muted">Tap any class block to see who is in it, where to go, and what's next.</p>
+            <div class="segmented" id="schedule-toggle">
+              <button class="active" data-schedule-view="my">My schedule</button>
+              <button data-schedule-view="classmate">Classmate: <span id="classmate-name">Avery</span></button>
+            </div>
+          </div>
+
+          <div class="schedule-layout">
+            <div class="schedule-grid" id="schedule-grid"></div>
+            <div class="schedule-side">
+              <div class="card" id="countdown-card">
+                <h3>Countdown</h3>
+                <p class="muted" id="countdown-status">Loading your next class...</p>
+                <div class="countdown-time" id="countdown-time">--:--:--</div>
+                <div class="countdown-meta" id="countdown-meta"></div>
+              </div>
+              <div class="card" id="class-details">
+                <h3>Class details</h3>
+                <p class="muted">Select a class block to see details.</p>
+                <div class="details-grid" id="class-details-grid"></div>
+              </div>
+              <div class="card">
+                <h3>Add an activity</h3>
+                <p class="muted">Add after-class activities, clubs, or personal reminders.</p>
+                <form class="schedule-form" id="schedule-form">
+                  <select id="schedule-day" required>
+                    <option value="Mon">Monday</option>
+                    <option value="Tue">Tuesday</option>
+                    <option value="Wed">Wednesday</option>
+                    <option value="Thu">Thursday</option>
+                    <option value="Fri">Friday</option>
+                  </select>
+                  <input type="text" id="schedule-title" placeholder="Activity title" required />
+                  <input type="time" id="schedule-start" required />
+                  <input type="time" id="schedule-end" required />
+                  <input type="text" id="schedule-location" placeholder="Location (optional)" />
+                  <select id="schedule-type">
+                    <option value="club">Club</option>
+                    <option value="practice">Practice</option>
+                    <option value="study">Study</option>
+                    <option value="personal">Personal</option>
+                  </select>
+                  <button class="primary-button" type="submit">Add to schedule</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" data-page="chat">
+          <div class="card">
+            <h3>Class chat</h3>
+            <p class="muted">Stay aligned with every class in one clean thread.</p>
+          </div>
+          <div class="chat-layout">
+            <div class="card">
+              <h3>Classes</h3>
+              <div class="chat-class-list" id="chat-class-list"></div>
+            </div>
+            <div class="card chat-thread">
+              <div class="chat-header">
+                <div>
+                  <h3 id="chat-title">Select a class</h3>
+                  <p class="muted" id="chat-subtitle">Open a class thread to start chatting.</p>
+                </div>
+                <button class="ghost-button" type="button">Start study room</button>
+              </div>
+              <div class="chat-messages" id="chat-messages"></div>
+              <form class="chat-input" id="chat-form">
+                <input type="text" id="chat-input" placeholder="Send a message" autocomplete="off" />
+                <button type="submit">Send</button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" data-page="study" id="study-root">
+          <div class="study-stage active" data-study-stage="select">
+            <div class="card study-hero">
+              <div>
+                <h3>Pick a study set</h3>
+                <p class="muted">Public sets show up here when someone marks them as shared.</p>
+              </div>
+              <div class="study-hero-actions">
+                <button class="primary-button" type="button" id="study-enter-workspace">Create or edit sets</button>
+                <button class="ghost-button" type="button" id="study-continue">Continue last set</button>
+              </div>
+            </div>
+            <div class="study-selection-grid">
+              <div class="card">
+                <div class="study-panel-header">
+                  <div>
+                    <h3>Public sets</h3>
+                    <p class="muted">Shared by classmates and clubs.</p>
+                  </div>
+                </div>
+                <div class="study-select-list" id="study-public-list"></div>
+              </div>
+              <div class="card">
+                <div class="study-panel-header">
+                  <div>
+                    <h3>Private sets</h3>
+                    <p class="muted">Drafts only you can see.</p>
+                  </div>
+                </div>
+                <div class="study-select-list" id="study-private-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="study-stage" data-study-stage="workspace">
+            <div class="card study-workspace-header">
+              <div class="study-panel-header">
+                <div>
+                  <h3 id="study-workspace-title">Study workspace</h3>
+                  <p class="muted" id="study-workspace-subtitle">Choose a set to start studying.</p>
+                </div>
+                <div class="study-panel-actions">
+                  <button class="ghost-button" type="button" id="study-back-select">Back to selection</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Your study sets</h3>
+              <p class="muted">Create sets with your own terms and definitions.</p>
+              <div class="study-set-grid">
+                <div class="study-set-list" id="study-set-list"></div>
+                <form class="study-form" id="study-set-form">
+                  <label>
+                    Set title
+                    <input id="study-set-title" placeholder="Biology Chapter 3" required />
+                  </label>
+                  <label>
+                    Description (optional)
+                    <input id="study-set-description" placeholder="Cell structure and functions" />
+                  </label>
+                  <label class="toggle-inline">
+                    <input type="checkbox" id="study-set-public" />
+                    <span>Make this set public</span>
+                  </label>
+                  <button class="primary-button" type="submit">Create set</button>
+                </form>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Cards in this set</h3>
+              <p class="muted">Add the terms and definitions you want to study.</p>
+              <form class="study-form" id="study-card-form">
+                <label>
+                  Term
+                  <input id="study-card-term" placeholder="Mitochondria" required />
+                </label>
+                <label>
+                  Definition
+                  <textarea id="study-card-definition" placeholder="Organelle that produces energy" required></textarea>
+                </label>
+                <button class="primary-button" type="submit">Add card</button>
+              </form>
+              <div class="study-card-list" id="study-card-list"></div>
+            </div>
+
+            <div class="card">
+              <h3>Study modes</h3>
+              <p class="muted">Pick a mode for the selected set.</p>
+              <div class="study-modes" id="study-mode-toggle">
+                <button class="active" data-study-mode="flashcards">Flashcards</button>
+                <button data-study-mode="learn">Practice</button>
+                <button data-study-mode="test">Test</button>
+                <button data-study-mode="match">Match</button>
+              </div>
+            </div>
+
+            <div class="card study-panel active" data-study-panel="flashcards">
+              <div class="study-panel-header">
+                <div>
+                  <h3>Flashcards</h3>
+                  <p class="muted" id="flashcard-subtitle">Flip to reveal the definition.</p>
+                </div>
+                <div class="study-panel-actions">
+                  <label class="toggle-inline">
+                    <input type="checkbox" id="flashcard-shuffle" />
+                    <span>Shuffle</span>
+                  </label>
+                  <button class="ghost-button" type="button" id="flashcard-star">Star</button>
+                </div>
+              </div>
+              <div class="flashcard" id="flashcard">
+                <div class="flashcard-inner">
+                  <div class="flashcard-face" id="flashcard-front"></div>
+                  <div class="flashcard-face flashcard-back" id="flashcard-back"></div>
+                </div>
+              </div>
+              <div class="flashcard-controls">
+                <button id="flashcard-prev">Prev</button>
+                <span class="muted" id="flashcard-progress"></span>
+                <button id="flashcard-next">Next</button>
+              </div>
+            </div>
+
+            <div class="card study-panel" data-study-panel="learn">
+              <div class="study-panel-header">
+                <div>
+                  <h3>Practice</h3>
+                  <p class="muted" id="practice-subtitle">Answer with multiple choice or a typed response.</p>
+                </div>
+                <div class="segmented" id="practice-type-toggle">
+                  <button class="active" data-practice-type="mixed">Mixed</button>
+                  <button data-practice-type="mc">Multiple choice</button>
+                  <button data-practice-type="written">Written</button>
+                </div>
+              </div>
+              <div class="quiz-card" id="practice-card"></div>
+            </div>
+
+            <div class="card study-panel" data-study-panel="test">
+              <div class="study-panel-header">
+                <div>
+                  <h3>Test</h3>
+                  <p class="muted" id="test-subtitle">Choose how many questions to include.</p>
+                </div>
+                <div class="study-panel-actions">
+                  <input type="number" id="test-count" min="1" max="50" value="10" />
+                  <button class="primary-button" type="button" id="test-start">Start test</button>
+                </div>
+              </div>
+              <div class="quiz-card" id="test-card"></div>
+            </div>
+
+            <div class="card study-panel" data-study-panel="match">
+              <div class="study-panel-header">
+                <div>
+                  <h3>Match</h3>
+                  <p class="muted" id="match-status">Match terms with definitions.</p>
+                </div>
+                <div class="study-panel-actions">
+                  <div class="pill" id="match-timer">00:00</div>
+                  <button class="ghost-button" type="button" id="match-reset">New game</button>
+                </div>
+              </div>
+              <div class="matching-board">
+                <div class="matching-columns">
+                  <div class="matching-list" id="match-terms"></div>
+                  <div class="matching-list" id="match-definitions"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" data-page="todo">
+          <div class="card">
+            <h3>Homework and to-do</h3>
+            <p class="muted">Assignments stay tied to classes with due dates and quick completion.</p>
+          </div>
+          <div class="todo-layout">
+            <div class="card">
+              <h3>Add assignment</h3>
+              <form class="todo-form" id="todo-form">
+                <select id="todo-class" required></select>
+                <input type="text" id="todo-title" placeholder="Assignment title" required />
+                <input type="date" id="todo-due" />
+                <textarea id="todo-notes" placeholder="Notes"></textarea>
+                <button class="primary-button" type="submit">Add assignment</button>
+              </form>
+            </div>
+            <div class="card">
+              <h3>Filters</h3>
+              <div class="filter-row">
+                <select id="filter-class"></select>
+                <select id="filter-status">
+                  <option value="all">All status</option>
+                  <option value="active">Active</option>
+                  <option value="completed">Completed</option>
+                </select>
+                <select id="filter-due">
+                  <option value="all">All dates</option>
+                  <option value="overdue">Overdue</option>
+                  <option value="today">Due today</option>
+                  <option value="upcoming">Due soon</option>
+                </select>
+              </div>
+              <p class="muted" id="todo-count"></p>
+            </div>
+            <div class="card">
+              <h3>Assignment list</h3>
+              <div class="todo-list" id="todo-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" data-page="profile">
+          <div class="card profile-card">
+            <h3>Student profile</h3>
+            <div class="details-grid">
+              <div><span class="muted">Name</span><strong id="profile-name">Jordan Lee</strong></div>
+              <div><span class="muted">Grade</span><strong id="profile-grade">11</strong></div>
+              <div><span class="muted">School</span><strong id="profile-school">Riverview High</strong></div>
+              <div><span class="muted">Goal</span><strong id="profile-goal">Keep everything organized</strong></div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Settings</h3>
+            <div class="settings-list" id="settings-list"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <nav class="bottom-nav">
+      <button class="active" data-page-target="schedule">Schedule</button>
+      <button data-page-target="chat">Chat</button>
+      <button data-page-target="study">Study</button>
+      <button data-page-target="todo">To-Do</button>
+      <button data-page-target="profile">Profile</button>
+    </nav>
+
+    <script>
+      const dayOrder = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+
+      const demoProfiles = [
+        {
+          name: "Avery Chen",
+          grade: "10",
+          school: "Summit Ridge High",
+          goal: "Stay ahead in STEM classes",
+        },
+        {
+          name: "Jordan Park",
+          grade: "11",
+          school: "Riverview High",
+          goal: "Balance activities and grades",
+        },
+        {
+          name: "Maya Ortiz",
+          grade: "12",
+          school: "Northgate Prep",
+          goal: "Stay focused on college apps",
+        },
+        {
+          name: "Elliot Brooks",
+          grade: "9",
+          school: "Lakeside Academy",
+          goal: "Build stronger study habits",
+        },
+      ];
+
+      const pickRandom = (list) => list[Math.floor(Math.random() * list.length)];
+      const activeProfile = pickRandom(demoProfiles);
+
+      const formatInputDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+
+      const addDays = (base, days) => {
+        const next = new Date(base);
+        next.setDate(base.getDate() + days);
+        return next;
+      };
+
+      const buildTodosSeed = () => {
+        const today = new Date();
+        return [
+          {
+            id: "seed-1",
+            classId: "alg2",
+            title: "Problem set 6",
+            dueDate: formatInputDate(addDays(today, -1)),
+            notes: "Focus on factoring trinomials.",
+            completed: false,
+          },
+          {
+            id: "seed-2",
+            classId: "hist",
+            title: "Outline chapter 9",
+            dueDate: formatInputDate(addDays(today, 1)),
+            notes: "Include key Progressive Era figures.",
+            completed: false,
+          },
+          {
+            id: "seed-3",
+            classId: "chem",
+            title: "Lab reflection",
+            dueDate: formatInputDate(addDays(today, 3)),
+            notes: "Explain the reaction outcome.",
+            completed: true,
+          },
+        ];
+      };
+
+      const shiftTime = (time, minutes) => {
+        const [hours, mins] = time.split(":").map(Number);
+        const base = new Date(2000, 0, 1, hours, mins);
+        base.setMinutes(base.getMinutes() + minutes);
+        const nextHours = base.getHours();
+        const nextMinutes = String(base.getMinutes()).padStart(2, "0");
+        return `${nextHours}:${nextMinutes}`;
+      };
+
+      const shiftSchedule = (scheduleMap, minutes) => {
+        const shifted = {};
+        dayOrder.forEach((day) => {
+          shifted[day] = scheduleMap[day].map((entry) => ({
+            ...entry,
+            start: shiftTime(entry.start, minutes),
+            end: shiftTime(entry.end, minutes),
+          }));
+        });
+        return shifted;
+      };
+
+      const baseSchedule = {
+        my: {
+          Mon: [
+            { classId: "alg2", start: "8:10", end: "9:00", period: 1 },
+            { classId: "hist", start: "9:05", end: "9:55", period: 2 },
+            { classId: "chem", start: "10:05", end: "10:55", period: 3 },
+            { classId: "span", start: "11:05", end: "11:55", period: 4 },
+            { classId: "write", start: "1:15", end: "2:05", period: 5 },
+          ],
+          Tue: [
+            { classId: "alg2", start: "8:10", end: "9:00", period: 1 },
+            { classId: "cs", start: "9:05", end: "9:55", period: 2 },
+            { classId: "chem", start: "10:05", end: "10:55", period: 3 },
+            { classId: "span", start: "11:05", end: "11:55", period: 4 },
+            { classId: "pe", start: "1:15", end: "2:05", period: 5 },
+          ],
+          Wed: [
+            { classId: "alg2", start: "8:10", end: "9:00", period: 1 },
+            { classId: "hist", start: "9:05", end: "9:55", period: 2 },
+            { classId: "chem", start: "10:05", end: "10:55", period: 3 },
+            { classId: "write", start: "11:05", end: "11:55", period: 4 },
+            { classId: "study", start: "1:15", end: "2:05", period: 5 },
+          ],
+          Thu: [
+            { classId: "alg2", start: "8:10", end: "9:00", period: 1 },
+            { classId: "cs", start: "9:05", end: "9:55", period: 2 },
+            { classId: "chem", start: "10:05", end: "10:55", period: 3 },
+            { classId: "span", start: "11:05", end: "11:55", period: 4 },
+            { classId: "club", start: "1:15", end: "2:20", period: 5 },
+          ],
+          Fri: [
+            { classId: "alg2", start: "8:10", end: "9:00", period: 1 },
+            { classId: "hist", start: "9:05", end: "9:55", period: 2 },
+            { classId: "chem", start: "10:05", end: "10:55", period: 3 },
+            { classId: "span", start: "11:05", end: "11:55", period: 4 },
+            { classId: "write", start: "1:15", end: "2:05", period: 5 },
+          ],
+        },
+        classmate: {
+          name: "Avery",
+          schedule: {
+            Mon: [
+              { classId: "cs", start: "8:10", end: "9:00", period: 1 },
+              { classId: "hist", start: "9:05", end: "9:55", period: 2 },
+              { classId: "chem", start: "10:05", end: "10:55", period: 3 },
+              { classId: "study", start: "11:05", end: "11:55", period: 4 },
+              { classId: "pe", start: "1:15", end: "2:05", period: 5 },
+            ],
+            Tue: [
+              { classId: "cs", start: "8:10", end: "9:00", period: 1 },
+              { classId: "alg2", start: "9:05", end: "9:55", period: 2 },
+              { classId: "chem", start: "10:05", end: "10:55", period: 3 },
+              { classId: "span", start: "11:05", end: "11:55", period: 4 },
+              { classId: "write", start: "1:15", end: "2:05", period: 5 },
+            ],
+            Wed: [
+              { classId: "cs", start: "8:10", end: "9:00", period: 1 },
+              { classId: "hist", start: "9:05", end: "9:55", period: 2 },
+              { classId: "chem", start: "10:05", end: "10:55", period: 3 },
+              { classId: "study", start: "11:05", end: "11:55", period: 4 },
+              { classId: "club", start: "1:15", end: "2:20", period: 5 },
+            ],
+            Thu: [
+              { classId: "cs", start: "8:10", end: "9:00", period: 1 },
+              { classId: "alg2", start: "9:05", end: "9:55", period: 2 },
+              { classId: "chem", start: "10:05", end: "10:55", period: 3 },
+              { classId: "span", start: "11:05", end: "11:55", period: 4 },
+              { classId: "pe", start: "1:15", end: "2:05", period: 5 },
+            ],
+            Fri: [
+              { classId: "cs", start: "8:10", end: "9:00", period: 1 },
+              { classId: "hist", start: "9:05", end: "9:55", period: 2 },
+              { classId: "chem", start: "10:05", end: "10:55", period: 3 },
+              { classId: "span", start: "11:05", end: "11:55", period: 4 },
+              { classId: "write", start: "1:15", end: "2:05", period: 5 },
+            ],
+          },
+        },
+      };
+
+      const scheduleVariants = [
+        baseSchedule,
+        {
+          my: shiftSchedule(baseSchedule.my, 45),
+          classmate: {
+            name: "Riley",
+            schedule: shiftSchedule(baseSchedule.classmate.schedule, 50),
+          },
+        },
+        {
+          my: shiftSchedule(baseSchedule.my, -20),
+          classmate: {
+            name: "Devon",
+            schedule: shiftSchedule(baseSchedule.classmate.schedule, -15),
+          },
+        },
+      ];
+
+      const activeSchedule = pickRandom(scheduleVariants);
+
+      const mockData = {
+        classes: [
+          {
+            id: "alg2",
+            name: "Algebra II",
+            room: "B214",
+            color: "#2de2a6",
+            classmates: ["Mia", "Noah", "Zoe", "Kai"],
+          },
+          {
+            id: "hist",
+            name: "US History",
+            room: "C103",
+            color: "#4ac8ff",
+            classmates: ["Riley", "Sam", "Lena", "Omar"],
+          },
+          {
+            id: "chem",
+            name: "Chemistry",
+            room: "Lab 2",
+            color: "#ffb347",
+            classmates: ["Avery", "Jules", "Priya", "Theo"],
+          },
+          {
+            id: "write",
+            name: "Creative Writing",
+            room: "E201",
+            color: "#ff7a63",
+            classmates: ["Ava", "Miles", "Sasha", "Brooke"],
+          },
+          {
+            id: "span",
+            name: "Spanish 3",
+            room: "D110",
+            color: "#6bdcff",
+            classmates: ["Luca", "Isla", "Mateo", "Nina"],
+          },
+          {
+            id: "cs",
+            name: "Computer Science",
+            room: "Tech 5",
+            color: "#3bdc8b",
+            classmates: ["Devon", "Ivy", "Zane", "Harper"],
+          },
+          {
+            id: "pe",
+            name: "Wellness",
+            room: "Gym",
+            color: "#ffd166",
+            classmates: ["Jordan", "Elle", "Jaden", "Max"],
+          },
+          {
+            id: "study",
+            name: "Study Hall",
+            room: "Library",
+            color: "#9aa3b2",
+            classmates: ["Quinn", "Remy", "Parker", "Skye"],
+          },
+          {
+            id: "club",
+            name: "Robotics Club",
+            room: "Lab 4",
+            color: "#7cf2d8",
+            classmates: ["Nova", "Cam", "Emery", "Fox"],
+          },
+        ],
+        schedules: activeSchedule,
+        chats: {
+          alg2: [
+            { sender: "Mia", text: "Anyone understand the last problem set?", time: "2:12 PM" },
+            { sender: "You", text: "I can share notes after practice.", time: "2:16 PM", mine: true },
+          ],
+          hist: [
+            { sender: "Riley", text: "Quiz on Friday. Flashcards?", time: "1:09 PM" },
+            { sender: "You", text: "Yes, making a deck now.", time: "1:11 PM", mine: true },
+          ],
+          chem: [
+            { sender: "Avery", text: "Lab report due Monday.", time: "11:42 AM" },
+            { sender: "You", text: "Got it, thanks.", time: "11:45 AM", mine: true },
+          ],
+          cs: [
+            { sender: "Devon", text: "Project groups posted in Orbit.", time: "9:02 AM" },
+          ],
+        },
+        todosSeed: buildTodosSeed(),
+        settings: [
+          { id: "notifications", label: "Notifications", default: true },
+          { id: "reminders", label: "Study reminders", default: true },
+          { id: "classmate", label: "Show classmate schedule", default: true },
+          { id: "midnight", label: "Midnight glow theme", default: false },
+          { id: "reduceMotion", label: "Reduce motion", default: false },
+        ],
+      };
+
+      const state = {
+        page: "schedule",
+        scheduleView: "my",
+        selectedClass: null,
+        scheduleExtras: [],
+        chatClassId: null,
+        todos: [],
+        settings: {},
+      };
+
+      const storage = {
+        get(key, fallback) {
+          try {
+            const value = localStorage.getItem(key);
+            return value ? JSON.parse(value) : fallback;
+          } catch (error) {
+            return fallback;
+          }
+        },
+        set(key, value) {
+          localStorage.setItem(key, JSON.stringify(value));
+        },
+      };
+
+      const pageTitles = {
+        schedule: {
+          title: "Schedule",
+          subtitle: "Your week at a glance, ready to adjust in seconds.",
+        },
+        chat: {
+          title: "Chat",
+          subtitle: "Stay in sync with each class without the noise.",
+        },
+        study: {
+          title: "Study",
+          subtitle: "Flashcards, practice, tests, and matching from your own cards.",
+        },
+        todo: {
+          title: "To-Do",
+          subtitle: "Assignments tied to classes with smart due reminders.",
+        },
+        profile: {
+          title: "Profile",
+          subtitle: "Personalize Orbit and manage preferences.",
+        },
+      };
+
+      const elements = {
+        pageTitle: document.getElementById("page-title"),
+        pageSubtitle: document.getElementById("page-subtitle"),
+        userAvatar: document.getElementById("user-avatar"),
+        userName: document.getElementById("user-name"),
+        userGrade: document.getElementById("user-grade"),
+        mobileUser: document.getElementById("mobile-user"),
+        sidebarName: document.getElementById("sidebar-name"),
+        profileName: document.getElementById("profile-name"),
+        profileGrade: document.getElementById("profile-grade"),
+        profileSchool: document.getElementById("profile-school"),
+        profileGoal: document.getElementById("profile-goal"),
+        classmateName: document.getElementById("classmate-name"),
+        scheduleGrid: document.getElementById("schedule-grid"),
+        scheduleToggle: document.getElementById("schedule-toggle"),
+        classDetailsGrid: document.getElementById("class-details-grid"),
+        countdownStatus: document.getElementById("countdown-status"),
+        countdownTime: document.getElementById("countdown-time"),
+        countdownMeta: document.getElementById("countdown-meta"),
+        scheduleForm: document.getElementById("schedule-form"),
+        scheduleDay: document.getElementById("schedule-day"),
+        scheduleTitle: document.getElementById("schedule-title"),
+        scheduleStart: document.getElementById("schedule-start"),
+        scheduleEnd: document.getElementById("schedule-end"),
+        scheduleLocation: document.getElementById("schedule-location"),
+        scheduleType: document.getElementById("schedule-type"),
+        chatClassList: document.getElementById("chat-class-list"),
+        chatMessages: document.getElementById("chat-messages"),
+        chatTitle: document.getElementById("chat-title"),
+        chatSubtitle: document.getElementById("chat-subtitle"),
+        chatForm: document.getElementById("chat-form"),
+        chatInput: document.getElementById("chat-input"),
+        todoForm: document.getElementById("todo-form"),
+        todoClass: document.getElementById("todo-class"),
+        todoTitle: document.getElementById("todo-title"),
+        todoDue: document.getElementById("todo-due"),
+        todoNotes: document.getElementById("todo-notes"),
+        filterClass: document.getElementById("filter-class"),
+        filterStatus: document.getElementById("filter-status"),
+        filterDue: document.getElementById("filter-due"),
+        todoList: document.getElementById("todo-list"),
+        todoCount: document.getElementById("todo-count"),
+        settingsList: document.getElementById("settings-list"),
+      };
+
+      const studyElements = {
+        root: document.getElementById("study-root"),
+        selectStage: document.querySelector('[data-study-stage="select"]'),
+        workspaceStage: document.querySelector('[data-study-stage="workspace"]'),
+        publicList: document.getElementById("study-public-list"),
+        privateList: document.getElementById("study-private-list"),
+        enterWorkspace: document.getElementById("study-enter-workspace"),
+        continueSet: document.getElementById("study-continue"),
+        backSelect: document.getElementById("study-back-select"),
+        workspaceTitle: document.getElementById("study-workspace-title"),
+        workspaceSubtitle: document.getElementById("study-workspace-subtitle"),
+        setList: document.getElementById("study-set-list"),
+        setForm: document.getElementById("study-set-form"),
+        setTitle: document.getElementById("study-set-title"),
+        setDescription: document.getElementById("study-set-description"),
+        setPublic: document.getElementById("study-set-public"),
+        cardForm: document.getElementById("study-card-form"),
+        cardTerm: document.getElementById("study-card-term"),
+        cardDefinition: document.getElementById("study-card-definition"),
+        cardList: document.getElementById("study-card-list"),
+        modeToggle: document.getElementById("study-mode-toggle"),
+        flashcard: document.getElementById("flashcard"),
+        flashFront: document.getElementById("flashcard-front"),
+        flashBack: document.getElementById("flashcard-back"),
+        flashPrev: document.getElementById("flashcard-prev"),
+        flashNext: document.getElementById("flashcard-next"),
+        flashProgress: document.getElementById("flashcard-progress"),
+        flashShuffle: document.getElementById("flashcard-shuffle"),
+        flashStar: document.getElementById("flashcard-star"),
+        flashSubtitle: document.getElementById("flashcard-subtitle"),
+        practiceTypeToggle: document.getElementById("practice-type-toggle"),
+        practiceCard: document.getElementById("practice-card"),
+        testCount: document.getElementById("test-count"),
+        testStart: document.getElementById("test-start"),
+        testCard: document.getElementById("test-card"),
+        matchTerms: document.getElementById("match-terms"),
+        matchDefinitions: document.getElementById("match-definitions"),
+        matchStatus: document.getElementById("match-status"),
+        matchTimer: document.getElementById("match-timer"),
+        matchReset: document.getElementById("match-reset"),
+      };
+
+      const getClassById = (id) => mockData.classes.find((item) => item.id === id);
+
+      const formatTimeRange = (start, end) => `${start} - ${end}`;
+
+      const parseTimeToMinutes = (time) => {
+        const [hours, minutes] = time.split(":").map(Number);
+        return hours * 60 + minutes;
+      };
+
+      const scheduleTypeColors = {
+        club: "#4ac8ff",
+        practice: "#ffb347",
+        study: "#2de2a6",
+        personal: "#9aa3b2",
+      };
+
+      const applyDemoProfile = () => {
+        const name = activeProfile.name;
+        const initials = name
+          .split(" ")
+          .filter(Boolean)
+          .map((part) => part[0].toUpperCase())
+          .slice(0, 2)
+          .join("");
+        elements.userAvatar.textContent = initials || "OR";
+        elements.userName.textContent = name;
+        elements.userGrade.textContent = `Grade ${activeProfile.grade}`;
+        elements.mobileUser.textContent = `Signed in as ${name}`;
+        elements.sidebarName.textContent = name;
+        elements.profileName.textContent = name;
+        elements.profileGrade.textContent = activeProfile.grade;
+        elements.profileSchool.textContent = activeProfile.school;
+        elements.profileGoal.textContent = activeProfile.goal;
+        elements.classmateName.textContent = mockData.schedules.classmate.name;
+      };
+
+      const buildScheduleMap = () => {
+        const baseSchedule =
+          state.scheduleView === "my"
+            ? mockData.schedules.my
+            : mockData.schedules.classmate.schedule;
+        const map = {};
+        dayOrder.forEach((day) => {
+          const entries = baseSchedule[day].map((entry) => ({
+            id: `${day}-${entry.classId}-${entry.start}`,
+            type: "class",
+            ...entry,
+          }));
+          if (state.scheduleView === "my") {
+            const extras = state.scheduleExtras.filter((item) => item.day === day);
+            extras.forEach((item) => {
+              entries.push({
+                id: item.id,
+                type: "custom",
+                title: item.title,
+                start: item.start,
+                end: item.end,
+                location: item.location,
+                scheduleType: item.scheduleType,
+              });
+            });
+          }
+          entries.sort((a, b) => parseTimeToMinutes(a.start) - parseTimeToMinutes(b.start));
+          map[day] = entries;
+        });
+        return map;
+      };
+
+      const setPage = (page) => {
+        state.page = page;
+        document.querySelectorAll(".page").forEach((section) => {
+          section.classList.toggle("active", section.dataset.page === page);
+        });
+        document.querySelectorAll("[data-page-target]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.pageTarget === page);
+        });
+        elements.pageTitle.textContent = pageTitles[page].title;
+        elements.pageSubtitle.textContent = pageTitles[page].subtitle;
+      };
+
+      const renderSchedule = () => {
+        const schedule = buildScheduleMap();
+        if (!state.selectedClass) {
+          const firstDay = dayOrder[0];
+          state.selectedClass = { day: firstDay, entryId: schedule[firstDay][0]?.id || null };
+        }
+        elements.scheduleGrid.innerHTML = "";
+
+        dayOrder.forEach((day) => {
+          const dayCard = document.createElement("div");
+          dayCard.className = "schedule-day";
+          const header = document.createElement("h4");
+          header.textContent = day;
+          dayCard.appendChild(header);
+
+          schedule[day].forEach((entry) => {
+            const classInfo = entry.type === "class" ? getClassById(entry.classId) : null;
+            const button = document.createElement("button");
+            button.className = "class-item";
+            const accentColor =
+              entry.type === "class" ? classInfo.color : scheduleTypeColors[entry.scheduleType] || "#4ac8ff";
+            button.style.setProperty("--accent-color", accentColor);
+            if (state.selectedClass && state.selectedClass.entryId === entry.id && state.selectedClass.day === day) {
+              button.classList.add("active");
+            }
+            button.innerHTML = `
+              <div>${entry.type === "class" ? classInfo.name : entry.title}</div>
+              <small>${formatTimeRange(entry.start, entry.end)}${entry.type === "class" ? ` · Period ${entry.period}` : " · Event"}</small>
+            `;
+            button.addEventListener("click", () => {
+              state.selectedClass = { day, entryId: entry.id };
+              renderSchedule();
+              renderClassDetails();
+            });
+            dayCard.appendChild(button);
+          });
+
+          elements.scheduleGrid.appendChild(dayCard);
+        });
+
+        renderClassDetails();
+        updateCountdown(schedule);
+        setScheduleFormState();
+      };
+
+      const setScheduleFormState = () => {
+        const isMySchedule = state.scheduleView === "my";
+        elements.scheduleForm.querySelectorAll("input, select, button").forEach((field) => {
+          field.disabled = !isMySchedule;
+        });
+        if (!isMySchedule) {
+          elements.scheduleTitle.placeholder = "Switch to My schedule to add items";
+        } else {
+          elements.scheduleTitle.placeholder = "Activity title";
+        }
+      };
+
+      const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+      const getNextScheduleEvent = (scheduleMap) => {
+        const now = new Date();
+        for (let offset = 0; offset < 7; offset += 1) {
+          const date = new Date(now);
+          date.setDate(now.getDate() + offset);
+          const dayName = dayNames[date.getDay()];
+          if (!dayOrder.includes(dayName)) {
+            continue;
+          }
+          const entries = scheduleMap[dayName] || [];
+          for (const entry of entries) {
+            const [startHours, startMinutes] = entry.start.split(":").map(Number);
+            const [endHours, endMinutes] = entry.end.split(":").map(Number);
+            const start = new Date(date);
+            const end = new Date(date);
+            start.setHours(startHours, startMinutes, 0, 0);
+            end.setHours(endHours, endMinutes, 0, 0);
+            if (offset === 0) {
+              if (now >= start && now <= end) {
+                return { type: "current", entry, dayName, start, end };
+              }
+              if (now < start) {
+                return { type: "upcoming", entry, dayName, start, end };
+              }
+            } else {
+              return { type: "upcoming", entry, dayName, start, end };
+            }
+          }
+        }
+        return null;
+      };
+
+      const formatDuration = (ms) => {
+        const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+        const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+        const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+        const seconds = String(totalSeconds % 60).padStart(2, "0");
+        return `${hours}:${minutes}:${seconds}`;
+      };
+
+      const updateCountdown = (scheduleMap) => {
+        const nextEvent = getNextScheduleEvent(scheduleMap);
+        if (!nextEvent) {
+          elements.countdownStatus.textContent = "No upcoming classes today.";
+          elements.countdownTime.textContent = "--:--:--";
+          elements.countdownMeta.textContent = "";
+          return;
+        }
+        const now = new Date();
+        const targetTime = nextEvent.type === "current" ? nextEvent.end : nextEvent.start;
+        const timeLeft = targetTime - now;
+        const entry = nextEvent.entry;
+        const classInfo = entry.type === "class" ? getClassById(entry.classId) : null;
+        const label =
+          nextEvent.type === "current"
+            ? entry.type === "class"
+              ? "Time left in class"
+              : "Time left in event"
+            : entry.type === "class"
+              ? "Time until next class"
+              : "Time until next event";
+        elements.countdownStatus.textContent = label;
+        elements.countdownTime.textContent = formatDuration(timeLeft);
+        const currentTime = now.toLocaleTimeString(undefined, {
+          hour: "numeric",
+          minute: "2-digit",
+        });
+        elements.countdownMeta.innerHTML = `
+          <span class="tag">${nextEvent.dayName}</span>
+          <span>Now ${currentTime}</span>
+          <span>${entry.type === "class" ? classInfo.name : entry.title}</span>
+          <span>${formatTimeRange(entry.start, entry.end)}</span>
+        `;
+      };
+
+      const renderClassDetails = () => {
+        if (!state.selectedClass) {
+          elements.classDetailsGrid.innerHTML = "";
+          return;
+        }
+        const schedule = buildScheduleMap();
+        const { day, entryId } = state.selectedClass;
+        const entry = schedule[day]?.find((item) => item.id === entryId);
+        if (!entry) {
+          elements.classDetailsGrid.innerHTML = "";
+          return;
+        }
+        if (entry.type === "class") {
+          const classInfo = getClassById(entry.classId);
+          const classmates = classInfo.classmates.join(", ");
+          elements.classDetailsGrid.innerHTML = `
+            <div><span>Class</span><strong>${classInfo.name}</strong></div>
+            <div><span>Room</span><strong>${classInfo.room}</strong></div>
+            <div><span>Day</span><strong>${day}</strong></div>
+            <div><span>Time</span><strong>${formatTimeRange(entry.start, entry.end)}</strong></div>
+            <div><span>Period</span><strong>${entry.period}</strong></div>
+            <div><span>Classmates</span><strong>${classmates}</strong></div>
+            <div><span>Chat</span><strong><button class="ghost-button" type="button" data-open-chat="${classInfo.id}">Open class chat</button></strong></div>
+          `;
+          const chatButton = elements.classDetailsGrid.querySelector("[data-open-chat]");
+          if (chatButton) {
+            chatButton.addEventListener("click", () => {
+              if (!mockData.chats[classInfo.id]) {
+                mockData.chats[classInfo.id] = [];
+              }
+              state.chatClassId = classInfo.id;
+              setPage("chat");
+              renderChatList();
+              renderChatThread();
+            });
+          }
+        } else {
+          elements.classDetailsGrid.innerHTML = `
+            <div><span>Event</span><strong>${entry.title}</strong></div>
+            <div><span>Day</span><strong>${day}</strong></div>
+            <div><span>Time</span><strong>${formatTimeRange(entry.start, entry.end)}</strong></div>
+            <div><span>Location</span><strong>${entry.location || "TBD"}</strong></div>
+            <div><span>Type</span><strong>${entry.scheduleType}</strong></div>
+            <div><span>Action</span><strong><button class="ghost-button" type="button" data-remove-event="${entry.id}">Remove event</button></strong></div>
+          `;
+          const removeButton = elements.classDetailsGrid.querySelector("[data-remove-event]");
+          if (removeButton) {
+            removeButton.addEventListener("click", () => {
+              removeScheduleItem(entry.id);
+            });
+          }
+        }
+      };
+
+      const renderChatList = () => {
+        elements.chatClassList.innerHTML = "";
+        const chatClasses = mockData.classes.filter(
+          (item) => mockData.chats[item.id] || item.id === state.chatClassId
+        );
+        if (state.chatClassId && !mockData.chats[state.chatClassId]) {
+          mockData.chats[state.chatClassId] = [];
+        }
+        if (!state.chatClassId && chatClasses.length) {
+          state.chatClassId = chatClasses[0].id;
+        }
+        chatClasses.forEach((item) => {
+            const button = document.createElement("button");
+            button.className = state.chatClassId === item.id ? "active" : "";
+            const thread = mockData.chats[item.id];
+            const lastMessage = thread[thread.length - 1] || { text: "No messages yet" };
+            button.innerHTML = `
+              <strong>${item.name}</strong>
+              <small class="muted">${lastMessage.text}</small>
+            `;
+            button.addEventListener("click", () => {
+              state.chatClassId = item.id;
+              renderChatList();
+              renderChatThread();
+            });
+            elements.chatClassList.appendChild(button);
+          });
+      };
+
+      const renderChatThread = () => {
+        if (!state.chatClassId) {
+          elements.chatMessages.innerHTML = "";
+          elements.chatTitle.textContent = "Select a class";
+          elements.chatSubtitle.textContent = "Open a class thread to start chatting.";
+          return;
+        }
+        const classInfo = getClassById(state.chatClassId);
+        const thread = mockData.chats[state.chatClassId] || [];
+        elements.chatTitle.textContent = classInfo.name;
+        elements.chatSubtitle.textContent = `${classInfo.room} · ${classInfo.classmates.length} classmates`;
+        elements.chatMessages.innerHTML = "";
+        thread.forEach((message) => {
+          const bubble = document.createElement("div");
+          bubble.className = `message${message.mine ? " mine" : ""}`;
+          bubble.innerHTML = `
+            <strong>${message.sender}</strong>
+            <div>${message.text}</div>
+            <small>${message.time}</small>
+          `;
+          elements.chatMessages.appendChild(bubble);
+        });
+        elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+      };
+
+      const studyStorage = {
+        get(key, fallback) {
+          try {
+            const value = localStorage.getItem(key);
+            return value ? JSON.parse(value) : fallback;
+          } catch (error) {
+            return fallback;
+          }
+        },
+        set(key, value) {
+          localStorage.setItem(key, JSON.stringify(value));
+        },
+      };
+
+      const studyKeys = {
+        sets: "orbitStudySets",
+        cards: "orbitStudyCards",
+        progress: "orbitStudyProgress",
+        activeSet: "orbitStudyActiveSet",
+      };
+
+      const studyData = {
+        sets: [],
+        cards: [],
+        progress: {},
+      };
+
+      const studyState = {
+        stage: "select",
+        mode: "flashcards",
+        selectedSetId: null,
+        flashcards: {
+          index: 0,
+          shuffle: false,
+          shuffleSeed: 0,
+          seen: new Set(),
+          currentCardId: null,
+        },
+        practice: {
+          seed: 0,
+          queue: [],
+          index: 0,
+          current: null,
+          type: "mixed",
+          answered: false,
+          lastResult: null,
+          setId: null,
+        },
+        test: {
+          seed: 0,
+          active: false,
+          index: 0,
+          questions: [],
+          answers: [],
+          results: null,
+          setId: null,
+        },
+        match: {
+          seed: 0,
+          terms: [],
+          definitions: [],
+          selectedTerm: null,
+          selectedDefinition: null,
+          matched: new Set(),
+          timerId: null,
+          startTime: null,
+          elapsedMs: 0,
+          setId: null,
+        },
+      };
+
+      const makeStudyId = (prefix) => {
+        if (window.crypto && crypto.randomUUID) {
+          return `${prefix}-${crypto.randomUUID()}`;
+        }
+        return `${prefix}-${Date.now()}`;
+      };
+
+      const hashString = (value) => {
+        let hash = 2166136261;
+        for (let i = 0; i < value.length; i += 1) {
+          hash ^= value.charCodeAt(i);
+          hash = Math.imul(hash, 16777619);
+        }
+        return hash >>> 0;
+      };
+
+      const createSeededRng = (seed) => {
+        let value = seed >>> 0;
+        return () => {
+          value = (value * 1664525 + 1013904223) >>> 0;
+          return value / 4294967296;
+        };
+      };
+
+      const shuffleWithSeed = (list, seed) => {
+        const rng = createSeededRng(seed);
+        const copy = [...list];
+        for (let i = copy.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(rng() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      };
+
+      const getActiveSet = () => studyData.sets.find((set) => set.id === studyState.selectedSetId);
+
+      const getCardsForSet = (setId) => studyData.cards.filter((card) => card.setId === setId);
+
+      const getCardsForActiveSet = () => (studyState.selectedSetId ? getCardsForSet(studyState.selectedSetId) : []);
+
+      const getSetVisibility = (set) => (set?.visibility === "public" ? "public" : "private");
+
+      const loadStudyData = () => {
+        studyData.sets = studyStorage.get(studyKeys.sets, []).map((set) => ({
+          ...set,
+          visibility: set.visibility === "public" ? "public" : "private",
+        }));
+        studyData.cards = studyStorage.get(studyKeys.cards, []);
+        studyData.progress = studyStorage.get(studyKeys.progress, {});
+        const savedSet = studyStorage.get(studyKeys.activeSet, null);
+        const validSaved = savedSet && studyData.sets.some((set) => set.id === savedSet);
+        studyState.selectedSetId = validSaved ? savedSet : studyData.sets[0]?.id || null;
+      };
+
+      const saveStudyData = () => {
+        studyStorage.set(studyKeys.sets, studyData.sets);
+        studyStorage.set(studyKeys.cards, studyData.cards);
+        studyStorage.set(studyKeys.progress, studyData.progress);
+        studyStorage.set(studyKeys.activeSet, studyState.selectedSetId);
+      };
+
+      const ensureProgress = (cardId) => {
+        if (!studyData.progress[cardId]) {
+          studyData.progress[cardId] = {
+            cardId,
+            seenCount: 0,
+            correctCount: 0,
+            wrongCount: 0,
+            mastery: 0,
+          };
+        }
+        return studyData.progress[cardId];
+      };
+
+      const updateProgress = (cardId, { seen = 0, correct = 0, wrong = 0 }) => {
+        const progress = ensureProgress(cardId);
+        progress.seenCount += seen;
+        progress.correctCount += correct;
+        progress.wrongCount += wrong;
+        const total = progress.correctCount + progress.wrongCount;
+        progress.mastery = total ? Math.min(1, progress.correctCount / total) : 0;
+        saveStudyData();
+      };
+
+      const removeProgress = (cardId) => {
+        delete studyData.progress[cardId];
+      };
+
+      const renderStudyEmpty = (container, message) => {
+        container.innerHTML = "";
+        const note = document.createElement("div");
+        note.className = "study-empty";
+        note.textContent = message;
+        container.appendChild(note);
+      };
+
+      const setStudyStage = (stage) => {
+        studyState.stage = stage;
+        if (studyElements.selectStage) {
+          studyElements.selectStage.classList.toggle("active", stage === "select");
+        }
+        if (studyElements.workspaceStage) {
+          studyElements.workspaceStage.classList.toggle("active", stage === "workspace");
+        }
+      };
+
+      const renderStudyWorkspaceHeader = () => {
+        if (!studyElements.workspaceTitle || !studyElements.workspaceSubtitle) {
+          return;
+        }
+        const activeSet = getActiveSet();
+        if (!activeSet) {
+          studyElements.workspaceTitle.textContent = "Study workspace";
+          studyElements.workspaceSubtitle.textContent = "Choose a set to start studying.";
+          return;
+        }
+        const cardCount = getCardsForSet(activeSet.id).length;
+        const visibilityLabel = getSetVisibility(activeSet) === "public" ? "Public set" : "Private set";
+        studyElements.workspaceTitle.textContent = activeSet.title;
+        studyElements.workspaceSubtitle.textContent = `${cardCount} cards · ${visibilityLabel}`;
+      };
+
+      const renderStudySelectionActions = () => {
+        if (!studyElements.continueSet) {
+          return;
+        }
+        const activeSet = getActiveSet();
+        if (!activeSet) {
+          studyElements.continueSet.disabled = true;
+          studyElements.continueSet.textContent = "Continue last set";
+          return;
+        }
+        studyElements.continueSet.disabled = false;
+        studyElements.continueSet.textContent = `Continue "${activeSet.title}"`;
+      };
+
+      const renderStudySelectLists = () => {
+        if (!studyElements.publicList || !studyElements.privateList) {
+          return;
+        }
+        const renderList = (container, sets, emptyMessage) => {
+          container.innerHTML = "";
+          if (!sets.length) {
+            renderStudyEmpty(container, emptyMessage);
+            return;
+          }
+          sets.forEach((set, index) => {
+            const card = document.createElement("button");
+            card.type = "button";
+            card.className = `study-select-card${set.id === studyState.selectedSetId ? " active" : ""}`;
+            card.style.animationDelay = `${index * 60}ms`;
+            const header = document.createElement("div");
+            header.className = "study-card-header";
+            const title = document.createElement("strong");
+            title.textContent = set.title;
+            const chip = document.createElement("span");
+            const visibility = getSetVisibility(set);
+            chip.className = `study-chip ${visibility}`;
+            chip.textContent = visibility === "public" ? "Public" : "Private";
+            header.appendChild(title);
+            header.appendChild(chip);
+            const description = document.createElement("small");
+            description.className = "muted";
+            description.textContent = set.description || "No description";
+            const meta = document.createElement("div");
+            meta.className = "study-card-meta";
+            const cardCount = getCardsForSet(set.id).length;
+            meta.textContent = `${cardCount} cards`;
+            card.appendChild(header);
+            card.appendChild(description);
+            card.appendChild(meta);
+            card.addEventListener("click", () => setActiveSet(set.id));
+            container.appendChild(card);
+          });
+        };
+        const publicSets = studyData.sets.filter((set) => getSetVisibility(set) === "public");
+        const privateSets = studyData.sets.filter((set) => getSetVisibility(set) !== "public");
+        renderList(
+          studyElements.publicList,
+          publicSets,
+          "No public sets yet. Mark one as public to share it here."
+        );
+        renderList(
+          studyElements.privateList,
+          privateSets,
+          "No private sets yet. Create one to keep it just for you."
+        );
+        renderStudySelectionActions();
+      };
+
+      const resetStudyModes = () => {
+        studyState.flashcards.index = 0;
+        studyState.flashcards.seen = new Set();
+        studyState.flashcards.currentCardId = null;
+        studyState.practice.queue = [];
+        studyState.practice.index = 0;
+        studyState.practice.current = null;
+        studyState.practice.answered = false;
+        studyState.practice.lastResult = null;
+        studyState.practice.setId = studyState.selectedSetId;
+        studyState.test.active = false;
+        studyState.test.questions = [];
+        studyState.test.answers = [];
+        studyState.test.results = null;
+        studyState.test.index = 0;
+        studyState.test.setId = studyState.selectedSetId;
+        studyState.match.setId = studyState.selectedSetId;
+      };
+
+      const setActiveSet = (setId) => {
+        studyState.selectedSetId = setId;
+        setStudyStage("workspace");
+        resetStudyModes();
+        saveStudyData();
+        renderStudySets();
+        renderStudyCards();
+        renderStudyMode();
+        renderStudyWorkspaceHeader();
+        startMatchGame();
+      };
+
+      const renderStudySets = () => {
+        if (!studyElements.setList) {
+          return;
+        }
+        studyElements.setList.innerHTML = "";
+        if (!studyData.sets.length) {
+          renderStudyEmpty(studyElements.setList, "No sets yet. Create one to begin.");
+          renderStudySelectLists();
+          renderStudyWorkspaceHeader();
+          return;
+        }
+        studyData.sets.forEach((set) => {
+          const card = document.createElement("div");
+          card.className = `study-set-card${set.id === studyState.selectedSetId ? " active" : ""}`;
+          const visibility = getSetVisibility(set);
+          const header = document.createElement("div");
+          header.className = "study-card-header";
+          const title = document.createElement("strong");
+          title.textContent = set.title;
+          const chip = document.createElement("span");
+          chip.className = `study-chip ${visibility}`;
+          chip.textContent = visibility === "public" ? "Public" : "Private";
+          header.appendChild(title);
+          header.appendChild(chip);
+          const description = document.createElement("small");
+          description.className = "muted";
+          description.textContent = set.description || "No description";
+          const meta = document.createElement("div");
+          meta.className = "study-card-meta";
+          const cardCount = getCardsForSet(set.id).length;
+          meta.textContent = `${cardCount} cards`;
+          const actions = document.createElement("div");
+          actions.className = "actions";
+          const openButton = document.createElement("button");
+          openButton.className = "ghost-button";
+          openButton.textContent = set.id === studyState.selectedSetId ? "Selected" : "Open";
+          openButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            setActiveSet(set.id);
+          });
+          const deleteButton = document.createElement("button");
+          deleteButton.className = "ghost-button";
+          deleteButton.textContent = "Delete";
+          deleteButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            const ok = window.confirm("Delete this set and all its cards?");
+            if (!ok) {
+              return;
+            }
+            const cardIds = studyData.cards.filter((cardItem) => cardItem.setId === set.id).map((cardItem) => cardItem.id);
+            studyData.cards = studyData.cards.filter((cardItem) => cardItem.setId !== set.id);
+            cardIds.forEach((cardId) => removeProgress(cardId));
+            studyData.sets = studyData.sets.filter((item) => item.id !== set.id);
+            if (studyState.selectedSetId === set.id) {
+              studyState.selectedSetId = studyData.sets[0]?.id || null;
+            }
+            resetStudyModes();
+            saveStudyData();
+            renderStudySets();
+            renderStudyCards();
+            renderStudyMode();
+            startMatchGame();
+          });
+          actions.appendChild(openButton);
+          actions.appendChild(deleteButton);
+          card.appendChild(header);
+          card.appendChild(description);
+          card.appendChild(meta);
+          card.appendChild(actions);
+          card.addEventListener("click", () => setActiveSet(set.id));
+          studyElements.setList.appendChild(card);
+        });
+        renderStudySelectLists();
+        renderStudyWorkspaceHeader();
+      };
+
+      const renderStudyCards = () => {
+        if (!studyElements.cardList) {
+          return;
+        }
+        studyElements.cardList.innerHTML = "";
+        const hasSet = !!studyState.selectedSetId;
+        studyElements.cardForm.querySelectorAll("input, textarea, button").forEach((field) => {
+          field.disabled = !hasSet;
+        });
+        if (!hasSet) {
+          renderStudyEmpty(studyElements.cardList, "Create or select a set to add cards.");
+          renderStudySelectLists();
+          renderStudyWorkspaceHeader();
+          return;
+        }
+        const cards = getCardsForActiveSet();
+        if (studyElements.testCount) {
+          studyElements.testCount.max = Math.max(1, cards.length);
+          if (Number(studyElements.testCount.value) > cards.length) {
+            studyElements.testCount.value = Math.max(1, cards.length);
+          }
+        }
+        if (!cards.length) {
+          renderStudyEmpty(studyElements.cardList, "No cards yet. Add your first term.");
+          renderStudySelectLists();
+          renderStudyWorkspaceHeader();
+          return;
+        }
+        cards.forEach((card) => {
+          const progress = ensureProgress(card.id);
+          const item = document.createElement("div");
+          item.className = "study-card-item";
+          const term = document.createElement("strong");
+          term.textContent = card.term;
+          const definition = document.createElement("small");
+          definition.className = "muted";
+          definition.textContent = card.definition;
+          const meta = document.createElement("div");
+          meta.className = "study-card-meta";
+          const masteryPercent = Math.round(progress.mastery * 100);
+          meta.textContent = `Seen ${progress.seenCount} · Mastery ${masteryPercent}%`;
+          const actions = document.createElement("div");
+          actions.className = "actions";
+          const starButton = document.createElement("button");
+          starButton.className = "ghost-button";
+          starButton.textContent = card.starred ? "Unstar" : "Star";
+          starButton.addEventListener("click", () => {
+            card.starred = !card.starred;
+            saveStudyData();
+            renderStudyCards();
+            renderFlashcardsMode();
+          });
+          const removeButton = document.createElement("button");
+          removeButton.className = "ghost-button";
+          removeButton.textContent = "Remove";
+          removeButton.addEventListener("click", () => {
+            studyData.cards = studyData.cards.filter((entry) => entry.id !== card.id);
+            removeProgress(card.id);
+            saveStudyData();
+            renderStudyCards();
+            renderStudyMode();
+          });
+          actions.appendChild(starButton);
+          actions.appendChild(removeButton);
+          item.appendChild(term);
+          item.appendChild(definition);
+          item.appendChild(meta);
+          item.appendChild(actions);
+          studyElements.cardList.appendChild(item);
+        });
+        renderStudySelectLists();
+        renderStudyWorkspaceHeader();
+      };
+
+      const renderStudyMode = () => {
+        if (!studyElements.modeToggle) {
+          return;
+        }
+        studyElements.modeToggle.querySelectorAll("button").forEach((button) => {
+          button.classList.toggle("active", button.dataset.studyMode === studyState.mode);
+        });
+        document.querySelectorAll("[data-study-panel]").forEach((panel) => {
+          panel.classList.toggle("active", panel.dataset.studyPanel === studyState.mode);
+        });
+        if (studyState.mode === "flashcards") {
+          renderFlashcardsMode();
+        } else if (studyState.mode === "learn") {
+          renderPracticeMode();
+        } else if (studyState.mode === "test") {
+          renderTestMode();
+        } else if (studyState.mode === "match") {
+          renderMatchMode();
+        }
+      };
+
+      const getFlashcardOrder = (cards) => {
+        if (!studyState.flashcards.shuffle) {
+          return cards;
+        }
+        const seed = hashString(`${studyState.selectedSetId}|flash|${studyState.flashcards.shuffleSeed}`);
+        return shuffleWithSeed(cards, seed);
+      };
+
+      // Flashcards mode: term -> flip -> definition, with shuffle and star.
+      const renderFlashcardsMode = () => {
+        if (!studyElements.flashcard) {
+          return;
+        }
+        const cards = getCardsForActiveSet();
+        if (!studyState.selectedSetId || !cards.length) {
+          studyElements.flashcard.classList.remove("flipped");
+          studyElements.flashFront.textContent = "Add cards to start studying.";
+          studyElements.flashBack.textContent = "";
+          studyElements.flashProgress.textContent = "Card 0 of 0";
+          studyElements.flashShuffle.checked = false;
+          studyElements.flashStar.textContent = "Star";
+          studyElements.flashPrev.disabled = true;
+          studyElements.flashNext.disabled = true;
+          studyElements.flashStar.disabled = true;
+          return;
+        }
+        const order = getFlashcardOrder(cards);
+        if (studyState.flashcards.index >= order.length) {
+          studyState.flashcards.index = 0;
+        }
+        const card = order[studyState.flashcards.index];
+        studyState.flashcards.currentCardId = card.id;
+        studyElements.flashcard.classList.remove("flipped");
+        studyElements.flashFront.textContent = card.term;
+        studyElements.flashBack.textContent = card.definition;
+        studyElements.flashProgress.textContent = `Card ${studyState.flashcards.index + 1} of ${order.length}`;
+        studyElements.flashShuffle.checked = studyState.flashcards.shuffle;
+        studyElements.flashStar.textContent = card.starred ? "Unstar" : "Star";
+        studyElements.flashPrev.disabled = order.length < 2;
+        studyElements.flashNext.disabled = order.length < 2;
+        studyElements.flashStar.disabled = false;
+      };
+
+      const handleFlashcardFlip = () => {
+        if (!studyState.flashcards.currentCardId) {
+          return;
+        }
+        studyElements.flashcard.classList.toggle("flipped");
+        if (studyElements.flashcard.classList.contains("flipped")) {
+          const cardId = studyState.flashcards.currentCardId;
+          if (!studyState.flashcards.seen.has(cardId)) {
+            studyState.flashcards.seen.add(cardId);
+            updateProgress(cardId, { seen: 1 });
+            renderStudyCards();
+          }
+        }
+      };
+
+      const buildPracticeQueue = (cards) => {
+        const weighted = [];
+        cards.forEach((card) => {
+          const progress = ensureProgress(card.id);
+          const penalty = Math.max(0, progress.wrongCount - progress.correctCount);
+          const repeats = 1 + Math.min(3, penalty);
+          for (let i = 0; i < repeats; i += 1) {
+            weighted.push(card.id);
+          }
+        });
+        const seed = hashString(`${studyState.selectedSetId}|practice|${studyState.practice.seed}`);
+        return shuffleWithSeed(weighted, seed);
+      };
+
+      const buildOptions = (card, cards, field, seedSalt) => {
+        const others = cards.filter((item) => item.id !== card.id).map((item) => item[field]);
+        const baseSeed = hashString(`${card.id}|${field}|${seedSalt}`);
+        const shuffled = shuffleWithSeed(others, baseSeed);
+        const selection = shuffled.slice(0, 3);
+        const options = shuffleWithSeed([card[field], ...selection], baseSeed + 1);
+        return options;
+      };
+
+      const normalizeAnswer = (value) => value.toLowerCase().trim();
+
+      // Practice / Learn mode: mixed multiple-choice and written, with repeat bias on mistakes.
+      const renderPracticeMode = () => {
+        const container = studyElements.practiceCard;
+        container.innerHTML = "";
+        const cards = getCardsForActiveSet();
+        if (!studyState.selectedSetId) {
+          renderStudyEmpty(container, "Select or create a set to start practicing.");
+          return;
+        }
+        if (!cards.length) {
+          renderStudyEmpty(container, "Add cards to start practicing.");
+          return;
+        }
+        if (studyState.practice.setId !== studyState.selectedSetId || !studyState.practice.queue.length) {
+          studyState.practice.queue = buildPracticeQueue(cards);
+          studyState.practice.index = 0;
+          studyState.practice.answered = false;
+          studyState.practice.lastResult = null;
+          studyState.practice.setId = studyState.selectedSetId;
+        }
+        if (!studyState.practice.queue.length) {
+          renderStudyEmpty(container, "Add more cards to begin practice.");
+          return;
+        }
+        if (studyState.practice.index >= studyState.practice.queue.length) {
+          studyState.practice.seed += 1;
+          studyState.practice.queue = buildPracticeQueue(cards);
+          studyState.practice.index = 0;
+        }
+        const cardId = studyState.practice.queue[studyState.practice.index];
+        const card = cards.find((item) => item.id === cardId);
+        if (!card) {
+          renderStudyEmpty(container, "Unable to find this card.");
+          return;
+        }
+        const type =
+          studyState.practice.type === "mixed"
+            ? studyState.practice.index % 2 === 0
+              ? "mc"
+              : "written"
+            : studyState.practice.type;
+        let question = null;
+        if (type === "mc") {
+          const options = buildOptions(card, cards, "definition", "practice");
+          if (options.length < 2) {
+            question = {
+              type: "written",
+              prompt: card.definition,
+              answer: card.term,
+              card,
+              label: "Type the term that matches:",
+            };
+          } else {
+            question = {
+              type: "mc",
+              prompt: `What is the definition of "${card.term}"?`,
+              answer: card.definition,
+              options,
+              card,
+            };
+          }
+        } else {
+          question = {
+            type: "written",
+            prompt: card.definition,
+            answer: card.term,
+            card,
+            label: "Type the term that matches:",
+          };
+        }
+        studyState.practice.current = question;
+
+        const header = document.createElement("div");
+        const counter = document.createElement("p");
+        counter.className = "muted";
+        counter.textContent = `Card ${studyState.practice.index + 1} of ${studyState.practice.queue.length}`;
+        const prompt = document.createElement("div");
+        const promptText = document.createElement("strong");
+        promptText.textContent = question.type === "mc" ? question.prompt : question.label;
+        prompt.appendChild(promptText);
+        header.appendChild(counter);
+        header.appendChild(prompt);
+        container.appendChild(header);
+
+        if (question.type === "mc") {
+          const optionsWrap = document.createElement("div");
+          optionsWrap.className = "quiz-options";
+          question.options.forEach((option) => {
+            const button = document.createElement("button");
+            button.textContent = option;
+            button.addEventListener("click", () => {
+              if (studyState.practice.answered) {
+                return;
+              }
+              handlePracticeAnswer(question, option);
+            });
+            optionsWrap.appendChild(button);
+          });
+          container.appendChild(optionsWrap);
+        } else {
+          const definition = document.createElement("p");
+          definition.textContent = question.prompt;
+          container.appendChild(definition);
+          const form = document.createElement("form");
+          form.className = "study-form";
+          const input = document.createElement("input");
+          input.type = "text";
+          input.placeholder = "Type the term";
+          input.value = studyState.practice.answered ? studyState.practice.lastResult?.answer || "" : "";
+          const submit = document.createElement("button");
+          submit.className = "primary-button";
+          submit.type = "submit";
+          submit.textContent = "Check answer";
+          form.appendChild(input);
+          form.appendChild(submit);
+          form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            if (studyState.practice.answered) {
+              return;
+            }
+            handlePracticeAnswer(question, input.value);
+          });
+          container.appendChild(form);
+        }
+
+        if (studyState.practice.answered) {
+          const feedback = document.createElement("div");
+          feedback.className = "study-card-meta";
+          feedback.textContent = studyState.practice.lastResult.correct
+            ? "Correct."
+            : `Correct answer: ${question.answer}`;
+          container.appendChild(feedback);
+          const nextButton = document.createElement("button");
+          nextButton.className = "primary-button";
+          nextButton.type = "button";
+          nextButton.textContent = "Next";
+          nextButton.addEventListener("click", () => {
+            studyState.practice.index += 1;
+            studyState.practice.answered = false;
+            studyState.practice.lastResult = null;
+            renderPracticeMode();
+          });
+          container.appendChild(nextButton);
+        }
+      };
+
+      const handlePracticeAnswer = (question, answer) => {
+        const normalized = normalizeAnswer(answer);
+        const correct = normalized === normalizeAnswer(question.answer);
+        updateProgress(question.card.id, { seen: 1, correct: correct ? 1 : 0, wrong: correct ? 0 : 1 });
+        if (!correct) {
+          studyState.practice.queue.push(question.card.id);
+          studyState.practice.queue.push(question.card.id);
+        }
+        studyState.practice.answered = true;
+        studyState.practice.lastResult = { correct, answer };
+        renderPracticeMode();
+        renderStudyCards();
+      };
+
+      const buildTestQuestions = (cards, count) => {
+        const seed = hashString(`${studyState.selectedSetId}|test|${studyState.test.seed}`);
+        const order = shuffleWithSeed(cards, seed).slice(0, count);
+        return order.map((card, index) => {
+          const type = index % 2 === 0 ? "mc" : "written";
+          if (type === "mc") {
+            const options = buildOptions(card, cards, "definition", `test-${index}`);
+            if (options.length < 2) {
+              return {
+                type: "written",
+                prompt: card.definition,
+                answer: card.term,
+                card,
+                label: "Type the term that matches:",
+              };
+            }
+            return {
+              type: "mc",
+              prompt: `What is the definition of "${card.term}"?`,
+              answer: card.definition,
+              options,
+              card,
+            };
+          }
+          return {
+            type: "written",
+            prompt: card.definition,
+            answer: card.term,
+            card,
+            label: "Type the term that matches:",
+          };
+        });
+      };
+
+      // Test mode: mixed question types with scoring and retry missed only.
+      const renderTestMode = () => {
+        const container = studyElements.testCard;
+        container.innerHTML = "";
+        const cards = getCardsForActiveSet();
+        if (!studyState.selectedSetId) {
+          renderStudyEmpty(container, "Select or create a set to start a test.");
+          return;
+        }
+        if (!cards.length) {
+          renderStudyEmpty(container, "Add cards to start a test.");
+          return;
+        }
+        if (!studyState.test.active && studyState.test.results) {
+          const summary = document.createElement("div");
+          const heading = document.createElement("h3");
+          heading.textContent = "Test results";
+          const score = document.createElement("p");
+          score.className = "muted";
+          score.textContent = `Score: ${studyState.test.results.correct} / ${studyState.test.results.total}`;
+          summary.appendChild(heading);
+          summary.appendChild(score);
+          container.appendChild(summary);
+          if (studyState.test.results.missed.length) {
+            const missedList = document.createElement("div");
+            missedList.className = "quiz-options";
+            studyState.test.results.missed.forEach((missed) => {
+              const item = document.createElement("div");
+              item.className = "study-card-item";
+              const promptText = document.createElement("strong");
+              promptText.textContent = missed.prompt;
+              const yourAnswer = document.createElement("small");
+              yourAnswer.className = "muted";
+              yourAnswer.textContent = `Your answer: ${missed.answer || "N/A"}`;
+              const correctAnswer = document.createElement("small");
+              correctAnswer.className = "muted";
+              correctAnswer.textContent = `Correct answer: ${missed.correctAnswer}`;
+              item.appendChild(promptText);
+              item.appendChild(yourAnswer);
+              item.appendChild(correctAnswer);
+              missedList.appendChild(item);
+            });
+            container.appendChild(missedList);
+            const retryButton = document.createElement("button");
+            retryButton.className = "primary-button";
+            retryButton.type = "button";
+            retryButton.textContent = "Retry missed only";
+            retryButton.addEventListener("click", () => {
+              const missedCards = studyState.test.results.missed.map((item) => item.cardId);
+              startTest(missedCards);
+            });
+            container.appendChild(retryButton);
+          }
+          const restart = document.createElement("button");
+          restart.className = "ghost-button";
+          restart.type = "button";
+          restart.textContent = "Start new test";
+          restart.addEventListener("click", () => {
+            studyState.test.results = null;
+            renderTestMode();
+          });
+          container.appendChild(restart);
+          return;
+        }
+
+        if (!studyState.test.active) {
+          const intro = document.createElement("p");
+          intro.className = "muted";
+          intro.textContent = "Choose a question count and start a test.";
+          container.appendChild(intro);
+          return;
+        }
+
+        const question = studyState.test.questions[studyState.test.index];
+        if (!question) {
+          renderStudyEmpty(container, "Unable to load this question.");
+          return;
+        }
+        const counter = document.createElement("p");
+        counter.className = "muted";
+        counter.textContent = `Question ${studyState.test.index + 1} of ${studyState.test.questions.length}`;
+        container.appendChild(counter);
+        const prompt = document.createElement("div");
+        const promptText = document.createElement("strong");
+        promptText.textContent = question.type === "mc" ? question.prompt : question.label;
+        prompt.appendChild(promptText);
+        container.appendChild(prompt);
+
+        if (question.type === "mc") {
+          const optionsWrap = document.createElement("div");
+          optionsWrap.className = "quiz-options";
+          question.options.forEach((option) => {
+            const button = document.createElement("button");
+            button.textContent = option;
+            button.addEventListener("click", () => {
+              if (studyState.test.active === false) {
+                return;
+              }
+              handleTestAnswer(question, option);
+            });
+            optionsWrap.appendChild(button);
+          });
+          container.appendChild(optionsWrap);
+        } else {
+          const definition = document.createElement("p");
+          definition.textContent = question.prompt;
+          container.appendChild(definition);
+          const form = document.createElement("form");
+          form.className = "study-form";
+          const input = document.createElement("input");
+          input.type = "text";
+          input.placeholder = "Type the term";
+          const submit = document.createElement("button");
+          submit.className = "primary-button";
+          submit.type = "submit";
+          submit.textContent = "Submit";
+          form.appendChild(input);
+          form.appendChild(submit);
+          form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            handleTestAnswer(question, input.value);
+          });
+          container.appendChild(form);
+        }
+      };
+
+      const startTest = (cardsOverride = null) => {
+        const cards = cardsOverride
+          ? studyData.cards.filter((card) => cardsOverride.includes(card.id))
+          : getCardsForActiveSet();
+        if (!cards.length) {
+          return;
+        }
+        const requested = Number(studyElements.testCount.value) || cards.length;
+        const count = Math.max(1, Math.min(cards.length, requested));
+        studyElements.testCount.value = count;
+        studyState.test.seed += 1;
+        studyState.test.questions = buildTestQuestions(cards, count);
+        studyState.test.answers = [];
+        studyState.test.index = 0;
+        studyState.test.active = true;
+        studyState.test.results = null;
+        studyState.test.setId = studyState.selectedSetId;
+        renderTestMode();
+      };
+
+      const handleTestAnswer = (question, answer) => {
+        const correct = normalizeAnswer(answer) === normalizeAnswer(question.answer);
+        studyState.test.answers.push({
+          cardId: question.card.id,
+          prompt: question.type === "mc" ? question.prompt : `${question.label} ${question.prompt}`,
+          answer,
+          correctAnswer: question.answer,
+          correct,
+        });
+        updateProgress(question.card.id, { seen: 1, correct: correct ? 1 : 0, wrong: correct ? 0 : 1 });
+        if (studyState.test.index + 1 >= studyState.test.questions.length) {
+          const correctCount = studyState.test.answers.filter((item) => item.correct).length;
+          const missed = studyState.test.answers.filter((item) => !item.correct);
+          studyState.test.results = {
+            total: studyState.test.questions.length,
+            correct: correctCount,
+            missed,
+          };
+          studyState.test.active = false;
+        } else {
+          studyState.test.index += 1;
+        }
+        renderTestMode();
+        renderStudyCards();
+      };
+
+      const formatElapsed = (ms) => {
+        const totalSeconds = Math.floor(ms / 1000);
+        const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+        const seconds = String(totalSeconds % 60).padStart(2, "0");
+        return `${minutes}:${seconds}`;
+      };
+
+      const updateMatchTimer = () => {
+        if (!studyState.match.startTime) {
+          return;
+        }
+        const now = Date.now();
+        studyState.match.elapsedMs = now - studyState.match.startTime;
+        studyElements.matchTimer.textContent = formatElapsed(studyState.match.elapsedMs);
+      };
+
+      const startMatchGame = () => {
+        const cards = getCardsForActiveSet();
+        if (studyState.match.timerId) {
+          clearInterval(studyState.match.timerId);
+        }
+        if (!studyState.selectedSetId || !cards.length) {
+          studyState.match.terms = [];
+          studyState.match.definitions = [];
+          studyState.match.matched = new Set();
+          studyState.match.selectedTerm = null;
+          studyState.match.selectedDefinition = null;
+          studyElements.matchTimer.textContent = "00:00";
+          renderMatchMode();
+          return;
+        }
+        studyState.match.seed += 1;
+        const baseSeed = hashString(`${studyState.selectedSetId}|match|${studyState.match.seed}`);
+        studyState.match.terms = shuffleWithSeed(
+          cards.map((card) => ({ id: card.id, text: card.term })),
+          baseSeed
+        );
+        studyState.match.definitions = shuffleWithSeed(
+          cards.map((card) => ({ id: card.id, text: card.definition })),
+          baseSeed + 1
+        );
+        studyState.match.matched = new Set();
+        studyState.match.selectedTerm = null;
+        studyState.match.selectedDefinition = null;
+        studyState.match.startTime = Date.now();
+        studyState.match.elapsedMs = 0;
+        studyElements.matchTimer.textContent = "00:00";
+        studyState.match.timerId = setInterval(updateMatchTimer, 1000);
+        renderMatchMode();
+      };
+
+      // Match mode: timed term/definition pairing with deterministic order.
+      const renderMatchMode = () => {
+        const cards = getCardsForActiveSet();
+        if (!studyState.selectedSetId || !cards.length) {
+          renderStudyEmpty(studyElements.matchTerms, "Add cards to start matching.");
+          studyElements.matchDefinitions.innerHTML = "";
+          studyElements.matchStatus.textContent = "Match terms with definitions.";
+          return;
+        }
+        studyElements.matchTerms.innerHTML = "";
+        studyElements.matchDefinitions.innerHTML = "";
+        studyElements.matchStatus.textContent = `Matched ${studyState.match.matched.size} of ${cards.length}`;
+
+        const buildItem = (item, type) => {
+          const button = document.createElement("button");
+          button.className = "matching-item";
+          button.textContent = item.text;
+          if (studyState.match.matched.has(item.id)) {
+            button.classList.add("matched");
+          }
+          if (type === "term" && studyState.match.selectedTerm === item.id) {
+            button.classList.add("selected");
+          }
+          if (type === "definition" && studyState.match.selectedDefinition === item.id) {
+            button.classList.add("selected");
+          }
+          button.addEventListener("click", () => handleMatchSelection(type, item.id));
+          return button;
+        };
+
+        studyState.match.terms.forEach((term) => {
+          studyElements.matchTerms.appendChild(buildItem(term, "term"));
+        });
+        studyState.match.definitions.forEach((definition) => {
+          studyElements.matchDefinitions.appendChild(buildItem(definition, "definition"));
+        });
+
+        if (studyState.match.matched.size === cards.length && cards.length > 0) {
+          if (studyState.match.timerId) {
+            clearInterval(studyState.match.timerId);
+            studyState.match.timerId = null;
+          }
+          studyElements.matchStatus.textContent = `Finished in ${formatElapsed(studyState.match.elapsedMs)}`;
+        }
+      };
+
+      const handleMatchSelection = (type, id) => {
+        if (studyState.match.matched.has(id)) {
+          return;
+        }
+        if (type === "term") {
+          studyState.match.selectedTerm = id;
+        } else {
+          studyState.match.selectedDefinition = id;
+        }
+        if (studyState.match.selectedTerm && studyState.match.selectedDefinition) {
+          const isMatch = studyState.match.selectedTerm === studyState.match.selectedDefinition;
+          if (isMatch) {
+            studyState.match.matched.add(studyState.match.selectedTerm);
+            updateProgress(studyState.match.selectedTerm, { seen: 1, correct: 1 });
+          } else {
+            updateProgress(studyState.match.selectedTerm, { seen: 1, wrong: 1 });
+            updateProgress(studyState.match.selectedDefinition, { seen: 1, wrong: 1 });
+          }
+          const resetSelection = () => {
+            studyState.match.selectedTerm = null;
+            studyState.match.selectedDefinition = null;
+            renderMatchMode();
+            renderStudyCards();
+          };
+          if (isMatch) {
+            resetSelection();
+          } else {
+            setTimeout(resetSelection, 400);
+          }
+        } else {
+          renderMatchMode();
+        }
+      };
+
+      const initStudySystem = () => {
+        if (!studyElements.root) {
+          return;
+        }
+        loadStudyData();
+        setStudyStage("select");
+        renderStudySets();
+        renderStudyCards();
+        renderStudyMode();
+        startMatchGame();
+
+        if (studyElements.enterWorkspace) {
+          studyElements.enterWorkspace.addEventListener("click", () => {
+            setStudyStage("workspace");
+            studyElements.setTitle?.focus();
+          });
+        }
+
+        if (studyElements.backSelect) {
+          studyElements.backSelect.addEventListener("click", () => {
+            setStudyStage("select");
+          });
+        }
+
+        if (studyElements.continueSet) {
+          studyElements.continueSet.addEventListener("click", () => {
+            if (studyState.selectedSetId) {
+              setActiveSet(studyState.selectedSetId);
+            } else {
+              setStudyStage("workspace");
+            }
+          });
+        }
+
+        studyElements.setForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const title = studyElements.setTitle.value.trim();
+          if (!title) {
+            return;
+          }
+          const description = studyElements.setDescription.value.trim();
+          const newSet = {
+            id: makeStudyId("set"),
+            title,
+            description,
+            createdAt: new Date().toISOString(),
+            visibility: studyElements.setPublic?.checked ? "public" : "private",
+          };
+          studyData.sets.unshift(newSet);
+          studyState.selectedSetId = newSet.id;
+          resetStudyModes();
+          saveStudyData();
+          studyElements.setForm.reset();
+          renderStudySets();
+          renderStudyCards();
+          renderStudyMode();
+          startMatchGame();
+        });
+
+        studyElements.cardForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          if (!studyState.selectedSetId) {
+            return;
+          }
+          const term = studyElements.cardTerm.value.trim();
+          const definition = studyElements.cardDefinition.value.trim();
+          if (!term || !definition) {
+            return;
+          }
+          const newCard = {
+            id: makeStudyId("card"),
+            setId: studyState.selectedSetId,
+            term,
+            definition,
+            starred: false,
+          };
+          studyData.cards.unshift(newCard);
+          ensureProgress(newCard.id);
+          saveStudyData();
+          studyElements.cardForm.reset();
+          renderStudyCards();
+          renderStudyMode();
+          startMatchGame();
+        });
+
+        studyElements.modeToggle.querySelectorAll("button").forEach((button) => {
+          button.addEventListener("click", () => {
+            studyState.mode = button.dataset.studyMode;
+            renderStudyMode();
+          });
+        });
+
+        studyElements.flashcard.addEventListener("click", handleFlashcardFlip);
+        studyElements.flashPrev.addEventListener("click", () => {
+          const cards = getCardsForActiveSet();
+          if (!cards.length) {
+            return;
+          }
+          const order = getFlashcardOrder(cards);
+          studyState.flashcards.index = (studyState.flashcards.index - 1 + order.length) % order.length;
+          renderFlashcardsMode();
+        });
+        studyElements.flashNext.addEventListener("click", () => {
+          const cards = getCardsForActiveSet();
+          if (!cards.length) {
+            return;
+          }
+          const order = getFlashcardOrder(cards);
+          studyState.flashcards.index = (studyState.flashcards.index + 1) % order.length;
+          renderFlashcardsMode();
+        });
+        studyElements.flashShuffle.addEventListener("change", (event) => {
+          studyState.flashcards.shuffle = event.target.checked;
+          studyState.flashcards.shuffleSeed += 1;
+          studyState.flashcards.index = 0;
+          renderFlashcardsMode();
+        });
+        studyElements.flashStar.addEventListener("click", () => {
+          const cardId = studyState.flashcards.currentCardId;
+          if (!cardId) {
+            return;
+          }
+          const card = studyData.cards.find((item) => item.id === cardId);
+          if (!card) {
+            return;
+          }
+          card.starred = !card.starred;
+          saveStudyData();
+          renderStudyCards();
+          renderFlashcardsMode();
+        });
+
+        studyElements.practiceTypeToggle.querySelectorAll("button").forEach((button) => {
+          button.addEventListener("click", () => {
+            studyElements.practiceTypeToggle.querySelectorAll("button").forEach((btn) => btn.classList.remove("active"));
+            button.classList.add("active");
+            studyState.practice.type = button.dataset.practiceType;
+            studyState.practice.queue = [];
+            studyState.practice.index = 0;
+            studyState.practice.answered = false;
+            renderPracticeMode();
+          });
+        });
+
+        studyElements.testStart.addEventListener("click", () => startTest());
+        studyElements.matchReset.addEventListener("click", startMatchGame);
+      };
+
+      const loadScheduleExtras = () => {
+        state.scheduleExtras = storage.get("orbitScheduleExtras", []);
+      };
+
+      const saveScheduleExtras = () => {
+        storage.set("orbitScheduleExtras", state.scheduleExtras);
+      };
+
+      const addScheduleItem = (event) => {
+        event.preventDefault();
+        const newItem = {
+          id: `event-${Date.now()}`,
+          day: elements.scheduleDay.value,
+          title: elements.scheduleTitle.value.trim(),
+          start: elements.scheduleStart.value,
+          end: elements.scheduleEnd.value,
+          location: elements.scheduleLocation.value.trim(),
+          scheduleType: elements.scheduleType.value,
+        };
+        state.scheduleExtras.push(newItem);
+        saveScheduleExtras();
+        elements.scheduleForm.reset();
+        renderSchedule();
+      };
+
+      const removeScheduleItem = (id) => {
+        state.scheduleExtras = state.scheduleExtras.filter((item) => item.id !== id);
+        saveScheduleExtras();
+        state.selectedClass = null;
+        renderSchedule();
+      };
+
+      const loadTodos = () => {
+        const stored = storage.get("orbitTodos", []);
+        if (stored.length) {
+          state.todos = stored;
+        } else {
+          state.todos = mockData.todosSeed;
+          storage.set("orbitTodos", state.todos);
+        }
+      };
+
+      const saveTodos = () => {
+        storage.set("orbitTodos", state.todos);
+      };
+
+      const getDueStatus = (dueDate, completed) => {
+        if (!dueDate || completed) {
+          return "none";
+        }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const due = new Date(`${dueDate}T00:00:00`);
+        const diff = due - today;
+        const oneDay = 24 * 60 * 60 * 1000;
+        if (diff < 0) {
+          return "overdue";
+        }
+        if (diff === 0) {
+          return "today";
+        }
+        if (diff <= oneDay * 3) {
+          return "upcoming";
+        }
+        return "later";
+      };
+
+      const formatDate = (dateString) => {
+        if (!dateString) {
+          return "No due date";
+        }
+        const date = new Date(`${dateString}T00:00:00`);
+        return date.toLocaleDateString(undefined, {
+          month: "short",
+          day: "numeric",
+        });
+      };
+
+      const renderTodoList = () => {
+        const classFilter = elements.filterClass.value;
+        const statusFilter = elements.filterStatus.value;
+        const dueFilter = elements.filterDue.value;
+
+        const filtered = state.todos.filter((todo) => {
+          if (classFilter !== "all" && todo.classId !== classFilter) {
+            return false;
+          }
+          if (statusFilter === "active" && todo.completed) {
+            return false;
+          }
+          if (statusFilter === "completed" && !todo.completed) {
+            return false;
+          }
+          const dueStatus = getDueStatus(todo.dueDate, todo.completed);
+          if (dueFilter === "overdue" && dueStatus !== "overdue") {
+            return false;
+          }
+          if (dueFilter === "today" && dueStatus !== "today") {
+            return false;
+          }
+          if (dueFilter === "upcoming" && dueStatus !== "upcoming") {
+            return false;
+          }
+          return true;
+        });
+
+        elements.todoList.innerHTML = "";
+        if (!filtered.length) {
+          elements.todoList.innerHTML = '<p class="muted">No assignments match the filters.</p>';
+        }
+
+        filtered.forEach((todo) => {
+          const classInfo = getClassById(todo.classId);
+          const dueStatus = getDueStatus(todo.dueDate, todo.completed);
+          const item = document.createElement("div");
+          item.className = `todo-item ${todo.completed ? "completed" : ""} ${dueStatus}`;
+          item.innerHTML = `
+            <strong>${todo.title}</strong>
+            <div class="todo-meta">
+              <span>${classInfo.name}</span>
+              <span>${formatDate(todo.dueDate)}</span>
+            </div>
+            <div>${todo.notes ? todo.notes : ""}</div>
+            <div class="todo-actions">
+              <button data-todo-id="${todo.id}">${todo.completed ? "Undo" : "Mark complete"}</button>
+              <span class="muted">${dueStatus === "overdue" ? "Overdue" : dueStatus === "today" ? "Due today" : dueStatus === "upcoming" ? "Due soon" : ""}</span>
+            </div>
+          `;
+          item.querySelector("button").addEventListener("click", () => toggleTodo(todo.id));
+          elements.todoList.appendChild(item);
+        });
+
+        const activeCount = state.todos.filter((todo) => !todo.completed).length;
+        elements.todoCount.textContent = `${activeCount} active assignments`;
+      };
+
+      const toggleTodo = (id) => {
+        state.todos = state.todos.map((todo) =>
+          todo.id === id ? { ...todo, completed: !todo.completed } : todo
+        );
+        saveTodos();
+        renderTodoList();
+      };
+
+      const addTodo = (event) => {
+        event.preventDefault();
+        const newTodo = {
+          id: `todo-${Date.now()}`,
+          classId: elements.todoClass.value,
+          title: elements.todoTitle.value.trim(),
+          dueDate: elements.todoDue.value,
+          notes: elements.todoNotes.value.trim(),
+          completed: false,
+        };
+        state.todos.unshift(newTodo);
+        saveTodos();
+        elements.todoForm.reset();
+        renderTodoList();
+      };
+
+      const renderTodoSelectors = () => {
+        const classOptions = mockData.classes.map((item) => ({ value: item.id, label: item.name }));
+        elements.todoClass.innerHTML = classOptions
+          .map((item) => `<option value="${item.value}">${item.label}</option>`)
+          .join("");
+        elements.filterClass.innerHTML =
+          '<option value="all">All classes</option>' +
+          classOptions.map((item) => `<option value="${item.value}">${item.label}</option>`).join("");
+      };
+
+      const loadSettings = () => {
+        const stored = storage.get("orbitSettings", {});
+        mockData.settings.forEach((setting) => {
+          state.settings[setting.id] = stored[setting.id] ?? setting.default;
+        });
+      };
+
+      const saveSettings = () => {
+        storage.set("orbitSettings", state.settings);
+      };
+
+      const applySettings = () => {
+        document.body.classList.toggle("midnight", !!state.settings.midnight);
+        document.body.classList.toggle("reduce-motion", !!state.settings.reduceMotion);
+      };
+
+      const renderSettings = () => {
+        elements.settingsList.innerHTML = "";
+        mockData.settings.forEach((setting) => {
+          const row = document.createElement("label");
+          row.className = "toggle";
+          row.innerHTML = `
+            <span>${setting.label}</span>
+            <input type="checkbox" data-setting="${setting.id}" ${state.settings[setting.id] ? "checked" : ""} />
+          `;
+          row.querySelector("input").addEventListener("change", (event) => {
+            state.settings[setting.id] = event.target.checked;
+            saveSettings();
+            applySettings();
+          });
+          elements.settingsList.appendChild(row);
+        });
+      };
+
+      const initNavigation = () => {
+        document.querySelectorAll("[data-page-target]").forEach((button) => {
+          button.addEventListener("click", () => {
+            setPage(button.dataset.pageTarget);
+          });
+        });
+      };
+
+      const initSchedule = () => {
+        elements.scheduleToggle.querySelectorAll("button").forEach((button) => {
+          button.addEventListener("click", () => {
+            elements.scheduleToggle.querySelectorAll("button").forEach((btn) => btn.classList.remove("active"));
+            button.classList.add("active");
+            state.scheduleView = button.dataset.scheduleView;
+            state.selectedClass = null;
+            renderSchedule();
+          });
+        });
+        elements.scheduleForm.addEventListener("submit", addScheduleItem);
+      };
+
+      const initChat = () => {
+        elements.chatForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const value = elements.chatInput.value.trim();
+          if (!value || !state.chatClassId) {
+            return;
+          }
+          const newMessage = {
+            sender: "You",
+            text: value,
+            time: new Date().toLocaleTimeString(undefined, {
+              hour: "numeric",
+              minute: "2-digit",
+            }),
+            mine: true,
+          };
+          mockData.chats[state.chatClassId] = mockData.chats[state.chatClassId] || [];
+          mockData.chats[state.chatClassId].push(newMessage);
+          elements.chatInput.value = "";
+          renderChatList();
+          renderChatThread();
+        });
+      };
+
+      const initTodos = () => {
+        elements.todoForm.addEventListener("submit", addTodo);
+        [elements.filterClass, elements.filterStatus, elements.filterDue].forEach((select) => {
+          select.addEventListener("change", renderTodoList);
+        });
+      };
+
+      const init = () => {
+        applyDemoProfile();
+        initNavigation();
+        initSchedule();
+        initChat();
+        initStudySystem();
+        initTodos();
+
+        loadSettings();
+        applySettings();
+        renderSettings();
+
+        loadTodos();
+        loadScheduleExtras();
+        renderTodoSelectors();
+        renderTodoList();
+
+        renderSchedule();
+        renderChatList();
+        renderChatThread();
+
+        setInterval(() => updateCountdown(buildScheduleMap()), 1000);
+      };
+
+      init();
+    </script>
+  </body>
+</html>

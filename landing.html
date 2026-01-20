@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Orbit - Student Hub</title>
+    <link rel="icon" href="assets/orbit-circle-logo.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Spline+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #0b0f1a;
+        --bg-alt: #0f1724;
+        --surface: rgba(255, 255, 255, 0.06);
+        --surface-strong: rgba(255, 255, 255, 0.12);
+        --border: rgba(255, 255, 255, 0.16);
+        --text: #f8fafc;
+        --muted: #b6c1d2;
+        --accent: #3de7c0;
+        --accent-2: #f6b34b;
+        --accent-3: #5ba3ff;
+        --shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+        --radius-lg: 24px;
+        --radius-md: 16px;
+        --radius-sm: 12px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      body::before,
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: -2;
+      }
+
+      body::before {
+        background:
+          radial-gradient(circle at 12% 18%, rgba(61, 231, 192, 0.18), transparent 48%),
+          radial-gradient(circle at 88% 18%, rgba(91, 163, 255, 0.2), transparent 52%),
+          radial-gradient(circle at 20% 82%, rgba(246, 179, 75, 0.18), transparent 55%),
+          linear-gradient(180deg, #0b0f1a 0%, #0b111f 45%, #0d1628 100%);
+      }
+
+      body::after {
+        background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+        background-size: 90px 90px;
+        opacity: 0.4;
+        z-index: -1;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .page {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 24px clamp(20px, 5vw, 64px);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      .brand-mark {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: var(--surface-strong);
+        border: 1px solid var(--border);
+        overflow: hidden;
+      }
+
+      .brand small {
+        display: block;
+        font-weight: 500;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        font-family: "Spline Sans", "Trebuchet MS", sans-serif;
+        font-weight: 500;
+      }
+
+      .nav-links a {
+        color: var(--muted);
+      }
+
+      .nav-links a:hover {
+        color: var(--text);
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 999px;
+        padding: 10px 18px;
+        border: 1px solid var(--border);
+        font-weight: 600;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .button.primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-3));
+        color: #08121d;
+        border: none;
+        box-shadow: 0 16px 30px rgba(61, 231, 192, 0.25);
+      }
+
+      .button.ghost {
+        background: transparent;
+        color: var(--text);
+      }
+
+      .button:hover {
+        transform: translateY(-1px);
+      }
+
+      .hero {
+        display: grid;
+        gap: 36px;
+        padding: 10px clamp(20px, 5vw, 64px) 64px;
+        align-items: center;
+      }
+
+      .hero-text {
+        max-width: 620px;
+      }
+
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .hero h1 {
+        font-size: clamp(2.2rem, 4vw, 3.6rem);
+        margin: 16px 0 12px;
+        line-height: 1.1;
+      }
+
+      .hero p {
+        color: var(--muted);
+        font-size: 1.05rem;
+        font-family: "Spline Sans", "Trebuchet MS", sans-serif;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .hero-note {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .hero-art {
+        display: grid;
+        place-items: center;
+        position: relative;
+        min-height: 320px;
+      }
+
+      .brand-logo {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center;
+        display: block;
+        transform: scale(1.08);
+        transform-origin: center;
+      }
+
+      .hero-logo {
+        width: min(360px, 80vw);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        animation: float 6s ease-in-out infinite;
+      }
+
+      .orbit-card {
+        position: absolute;
+        background: rgba(9, 14, 25, 0.85);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 10px 14px;
+        min-width: 140px;
+        box-shadow: var(--shadow);
+        font-family: "Spline Sans", "Trebuchet MS", sans-serif;
+        animation: drift 5s ease-in-out infinite;
+      }
+
+      .orbit-card strong {
+        display: block;
+        font-size: 0.9rem;
+      }
+
+      .orbit-card span {
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+
+      .orbit-card.card-1 {
+        top: -8%;
+        right: -4%;
+        animation-delay: 0.2s;
+      }
+
+      .orbit-card.card-2 {
+        bottom: 6%;
+        left: -2%;
+        animation-delay: 0.6s;
+      }
+
+      .orbit-card.card-3 {
+        bottom: -6%;
+        right: 12%;
+        animation-delay: 1s;
+      }
+
+      .section {
+        padding: 40px clamp(20px, 5vw, 64px);
+      }
+
+      .section h2 {
+        font-size: clamp(1.6rem, 3vw, 2.4rem);
+        margin-bottom: 8px;
+      }
+
+      .section p {
+        color: var(--muted);
+        font-family: "Spline Sans", "Trebuchet MS", sans-serif;
+      }
+
+      .feature-grid {
+        display: grid;
+        gap: 18px;
+        margin-top: 24px;
+      }
+
+      .feature-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        box-shadow: var(--shadow);
+        display: grid;
+        gap: 10px;
+      }
+
+      .feature-card span {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: var(--accent-2);
+      }
+
+      .steps {
+        display: grid;
+        gap: 16px;
+        margin-top: 24px;
+      }
+
+      .step {
+        display: grid;
+        gap: 8px;
+        padding: 18px;
+        border-radius: var(--radius-md);
+        background: var(--surface);
+        border: 1px solid var(--border);
+      }
+
+      .cta {
+        display: grid;
+        gap: 10px;
+        justify-items: start;
+        margin-top: 24px;
+      }
+
+      footer {
+        margin-top: auto;
+        padding: 32px clamp(20px, 5vw, 64px) 40px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      @media (min-width: 960px) {
+        .hero {
+          grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+        }
+
+        .feature-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .steps {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      @keyframes drift {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(6px);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="nav">
+        <div class="brand">
+          <div class="brand-mark">
+            <img class="brand-logo" src="assets/orbit-circle-logo.png" alt="Orbit logo" />
+          </div>
+          <div>
+            Orbit
+            <small>Student hub</small>
+          </div>
+        </div>
+        <div class="nav-links">
+          <a href="/about">About</a>
+          <a class="button ghost" href="/signin">Sign in</a>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="hero-text">
+          <span class="kicker">Student-powered workflow</span>
+          <h1>Orbit keeps classes, study sets, and chats in one calm place.</h1>
+          <p>
+            Plan your week, make flashcards, run practice sessions, and stay in touch with classmates. Orbit is built
+            to feel focused, fast, and friendly for school teams.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="/signin">Sign in</a>
+            <a class="button ghost" href="#features">Explore features</a>
+          </div>
+          <div class="hero-note">Student powered - open source - ready for any schedule.</div>
+        </div>
+        <div class="hero-art">
+          <img class="hero-logo" src="assets/orbit-logo.png" alt="Orbit logo" />
+          <div class="orbit-card card-1">
+            <strong>Study sets</strong>
+            <span>Flashcards and practice</span>
+          </div>
+          <div class="orbit-card card-2">
+            <strong>Schedule</strong>
+            <span>Classes and events</span>
+          </div>
+          <div class="orbit-card card-3">
+            <strong>Chats</strong>
+            <span>Friends and groups</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <h2>Everything students asked for, in one hub.</h2>
+        <p>Orbit connects your class day with study tools and messaging so nothing falls through the cracks.</p>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <span>Plan</span>
+            <h3>Schedule that adapts</h3>
+            <p>Build weekly plans with class details, countdowns, and personal events that stay editable.</p>
+          </div>
+          <div class="feature-card">
+            <span>Study</span>
+            <h3>Study modes that stick</h3>
+            <p>Flashcards, practice, tests, and matching are all built in for any subject or set.</p>
+          </div>
+          <div class="feature-card">
+            <span>Connect</span>
+            <h3>Messaging that lasts</h3>
+            <p>Direct messages, class chats, and group threads keep everyone aligned without the noise.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>How Orbit works</h2>
+        <p>Move through the day with a clear system that stays human.</p>
+        <div class="steps">
+          <div class="step">
+            <strong>1. Sign in</strong>
+            <p>Log in, customize your profile, and pick the tools you need most.</p>
+          </div>
+          <div class="step">
+            <strong>2. Build your set</strong>
+            <p>Add classes, assignments, and study sets that match your workload.</p>
+          </div>
+          <div class="step">
+            <strong>3. Stay aligned</strong>
+            <p>Chat with friends, form groups, and keep every class on the same page.</p>
+          </div>
+        </div>
+        <div class="cta">
+          <a class="button primary" href="/signin">Get started in Orbit</a>
+          <a class="button ghost" href="/about">Read about Orbit</a>
+        </div>
+      </section>
+
+      <footer>
+        Orbit is student-powered and open source. Built for focus, not noise.
+      </footer>
+    </div>
+  </body>
+</html>
