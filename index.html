@@ -142,6 +142,7 @@
         text-align: left;
         font-weight: 600;
         cursor: pointer;
+        touch-action: manipulation;
         transition: 0.2s ease;
       }
 
@@ -665,6 +666,27 @@
 
       .setup-details[hidden] {
         display: none;
+      }
+
+      .setup-meta {
+        display: grid;
+        gap: 8px;
+      }
+
+      .setup-field {
+        display: grid;
+        gap: 6px;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      .setup-field input {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 8px 10px;
+        color: var(--text);
+        font-family: inherit;
       }
 
       .setup-note {
@@ -1627,8 +1649,8 @@
         background: rgba(255, 255, 255, 0.95);
         border-top: 1px solid var(--border);
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        padding: 8px 10px 14px;
+        grid-template-columns: repeat(6, 1fr);
+        padding: 8px 10px calc(14px + env(safe-area-inset-bottom, 0px));
         z-index: 10;
         box-shadow: 0 -12px 30px rgba(15, 23, 42, 0.08);
       }
@@ -1640,10 +1662,124 @@
         font-weight: 600;
         padding: 8px;
         cursor: pointer;
+        touch-action: manipulation;
       }
 
       .bottom-nav button.active {
         color: var(--text);
+      }
+
+      .feedback-widget {
+        position: fixed;
+        right: 20px;
+        bottom: calc(20px + env(safe-area-inset-bottom, 0px) + 70px);
+        display: flex;
+        flex-direction: column-reverse;
+        align-items: flex-end;
+        gap: 12px;
+        z-index: 20;
+      }
+
+      .feedback-toggle {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        box-shadow: var(--shadow-soft);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .feedback-toggle:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+      }
+
+      .feedback-toggle img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+      }
+
+      .feedback-widget.open .feedback-toggle {
+        box-shadow: 0 0 0 4px rgba(22, 183, 154, 0.2), var(--shadow-soft);
+      }
+
+      .feedback-panel {
+        width: min(320px, calc(100vw - 32px));
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 16px;
+        box-shadow: var(--shadow);
+        transform-origin: bottom right;
+        transform: translateY(12px) scale(0.96);
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.2s ease;
+      }
+
+      .feedback-widget.open .feedback-panel {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+      }
+
+      .feedback-panel h4 {
+        margin: 0 0 6px;
+      }
+
+      .feedback-panel textarea {
+        width: 100%;
+        min-height: 96px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text);
+        font-family: inherit;
+        resize: vertical;
+      }
+
+      .feedback-panel textarea:focus {
+        outline: 2px solid rgba(22, 183, 154, 0.4);
+        border-color: transparent;
+      }
+
+      .feedback-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 12px;
+      }
+
+      .feedback-status {
+        margin: 10px 0 0;
+        font-size: 0.85rem;
+        color: var(--muted);
+        min-height: 1.1em;
+      }
+
+      .feedback-status.error {
+        color: var(--danger);
+      }
+
+      .feedback-status.success {
+        color: var(--success);
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
       }
 
       @keyframes stageIn {
@@ -1691,6 +1827,10 @@
       body.midnight .bottom-nav {
         background: rgba(16, 23, 37, 0.96);
         box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.35);
+      }
+
+      body.midnight .feedback-toggle img {
+        filter: brightness(0) invert(1);
       }
 
       @media (min-width: 900px) {
@@ -1764,6 +1904,10 @@
 
         .bottom-nav {
           display: none;
+        }
+
+        .feedback-widget {
+          bottom: 28px;
         }
       }
     </style>
@@ -1884,6 +2028,12 @@
                   <p class="muted">Choose how your school week repeats, then add your classes.</p>
                 </div>
                 <span class="setup-step" id="setup-step">Step 1 of 2</span>
+              </div>
+              <div class="setup-meta">
+                <label class="setup-field" for="setup-school">
+                  School name
+                  <input id="setup-school" type="text" placeholder="Your school" autocomplete="organization" />
+                </label>
               </div>
               <div class="setup-options" id="setup-options">
                 <button class="setup-option" type="button" data-setup-type="daily">
@@ -2267,8 +2417,7 @@
             <div class="details-grid">
               <div><span class="muted">Name</span><strong id="profile-name">Jordan Lee</strong></div>
               <div><span class="muted">Grade</span><strong id="profile-grade">11</strong></div>
-              <div><span class="muted">School</span><strong id="profile-school">Riverview High</strong></div>
-              <div><span class="muted">Goal</span><strong id="profile-goal">Keep everything organized</strong></div>
+              <div><span class="muted">School</span><strong id="profile-school">Not set</strong></div>
             </div>
           </div>
           <div class="card">
@@ -2307,6 +2456,25 @@
       <button data-page-target="profile">Profile</button>
     </nav>
 
+    <div class="feedback-widget" id="feedback-widget">
+      <button class="feedback-toggle" id="feedback-toggle" type="button" aria-expanded="false" aria-controls="feedback-panel">
+        <img src="assets/feedback-icon.png" alt="" />
+        <span class="sr-only">Open feedback</span>
+      </button>
+      <div class="feedback-panel" id="feedback-panel" aria-hidden="true">
+        <h4>Quick feedback</h4>
+        <p class="muted">What's going wrong?</p>
+        <form id="feedback-form">
+          <textarea id="feedback-input" placeholder="Tell us what's wrong or missing"></textarea>
+          <div class="feedback-actions">
+            <button class="ghost-button" type="button" id="feedback-cancel">Close</button>
+            <button class="primary-button" type="submit">Send</button>
+          </div>
+          <p class="feedback-status" id="feedback-status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+
     <script>
       const dayOrder = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 
@@ -2322,26 +2490,18 @@
         {
           name: "Avery Chen",
           grade: "10",
-          school: "Summit Ridge High",
-          goal: "Stay ahead in STEM classes",
         },
         {
           name: "Jordan Park",
           grade: "11",
-          school: "Riverview High",
-          goal: "Balance activities and grades",
         },
         {
           name: "Maya Ortiz",
           grade: "12",
-          school: "Northgate Prep",
-          goal: "Stay focused on college apps",
         },
         {
           name: "Elliot Brooks",
           grade: "9",
-          school: "Lakeside Academy",
-          goal: "Build stronger study habits",
         },
       ];
 
@@ -2362,7 +2522,49 @@
       };
 
       const buildTodosSeed = () => {
-        return [];
+        const classIds = mockData.classes.map((item) => item.id).filter(Boolean);
+        if (!classIds.length) {
+          return [];
+        }
+        const username = String(activeProfile.name || "").trim().toLowerCase();
+        const today = new Date();
+        const makeDue = (offset) => formatInputDate(addDays(today, offset));
+        const templatesByUser = {
+          vlad: [
+            { title: "Finish AP CS binary search notes", offset: 1, notes: "Add edge cases from class." },
+            { title: "Bio quiz practice", offset: 2, notes: "Review vocab terms 1-20." },
+            { title: "History DBQ outline", offset: 3, notes: "Thesis + 3 body claims." },
+          ],
+          luna: [
+            { title: "Algebra worksheet corrections", offset: 1, notes: "Rework missed problems." },
+            { title: "English reading response", offset: 2, notes: "Use two direct quotes." },
+            { title: "Chem lab conclusion", offset: 4, notes: "Submit before Friday." },
+          ],
+          nina: [
+            { title: "Spanish vocab check", offset: 1, notes: "Practice unit 5 verbs." },
+            { title: "Geometry proofs review", offset: 3, notes: "Focus on angle theorems." },
+            { title: "Prepare group presentation slides", offset: 4, notes: "Final review with team." },
+          ],
+          omar: [
+            { title: "Physics problem set", offset: 2, notes: "Show all work for full credit." },
+            { title: "World history flashcards", offset: 3, notes: "30 terms minimum." },
+            { title: "Draft essay intro paragraph", offset: 5, notes: "Bring printed copy." },
+          ],
+          sam: [
+            { title: "Study hall planning checklist", offset: 1, notes: "Prioritize week tasks." },
+            { title: "Chem equations practice", offset: 2, notes: "Balance ten equations." },
+            { title: "Math challenge packet", offset: 5, notes: "Attempt bonus section." },
+          ],
+        };
+        const templates = templatesByUser[username] || templatesByUser.vlad;
+        return templates.map((item, index) => ({
+          id: `seed-todo-${username || "user"}-${index + 1}`,
+          classId: classIds[index % classIds.length],
+          title: item.title,
+          dueDate: makeDue(item.offset),
+          notes: item.notes,
+          completed: false,
+        }));
       };
 
       const shiftTime = (time, minutes) => {
@@ -2439,63 +2641,63 @@
             name: "Algebra II",
             room: "B214",
             color: "#2de2a6",
-            classmates: ["Mia", "Noah", "Zoe", "Kai"],
+            classmates: [],
           },
           {
             id: "hist",
             name: "US History",
             room: "C103",
             color: "#4ac8ff",
-            classmates: ["Riley", "Sam", "Lena", "Omar"],
+            classmates: [],
           },
           {
             id: "chem",
             name: "Chemistry",
             room: "Lab 2",
             color: "#ffb347",
-            classmates: ["Avery", "Jules", "Priya", "Theo"],
+            classmates: [],
           },
           {
             id: "write",
             name: "Creative Writing",
             room: "E201",
             color: "#ff7a63",
-            classmates: ["Ava", "Miles", "Sasha", "Brooke"],
+            classmates: [],
           },
           {
             id: "span",
             name: "Spanish 3",
             room: "D110",
             color: "#6bdcff",
-            classmates: ["Luca", "Isla", "Mateo", "Nina"],
+            classmates: [],
           },
           {
             id: "cs",
             name: "Computer Science",
             room: "Tech 5",
             color: "#3bdc8b",
-            classmates: ["Devon", "Ivy", "Zane", "Harper"],
+            classmates: [],
           },
           {
             id: "pe",
             name: "Wellness",
             room: "Gym",
             color: "#ffd166",
-            classmates: ["Jordan", "Elle", "Jaden", "Max"],
+            classmates: [],
           },
           {
             id: "study",
             name: "Study Hall",
             room: "Library",
             color: "#9aa3b2",
-            classmates: ["Quinn", "Remy", "Parker", "Skye"],
+            classmates: [],
           },
           {
             id: "club",
             name: "Robotics Club",
             room: "Lab 4",
             color: "#7cf2d8",
-            classmates: ["Nova", "Cam", "Emery", "Fox"],
+            classmates: [],
           },
         ],
         schedules: {
@@ -2551,7 +2753,32 @@
         loaded: false,
       };
 
-      const classmateStorageKey = "orbitClassmate";
+      const getActiveStorageScope = () => {
+        const username = String(activeProfile.name || "").trim().toLowerCase();
+        return username || "guest";
+      };
+
+      const scopedStorageKey = (baseKey) => `${baseKey}:${getActiveStorageScope()}`;
+
+      const readScopedOrLegacy = (baseKey, fallback) => {
+        try {
+          const scopedRaw = localStorage.getItem(scopedStorageKey(baseKey));
+          if (scopedRaw !== null) {
+            return JSON.parse(scopedRaw);
+          }
+          const legacyRaw = localStorage.getItem(baseKey);
+          if (legacyRaw !== null) {
+            const parsed = JSON.parse(legacyRaw);
+            localStorage.setItem(scopedStorageKey(baseKey), JSON.stringify(parsed));
+            return parsed;
+          }
+        } catch (error) {
+          return fallback;
+        }
+        return fallback;
+      };
+
+      const classmateStorageKey = () => scopedStorageKey("orbitClassmate");
 
       const chatState = {
         threads: {},
@@ -2581,6 +2808,7 @@
       const profileState = {
         bio: "",
         avatar: "",
+        school: "",
       };
 
       const groupsState = {
@@ -2678,7 +2906,6 @@
         profileName: document.getElementById("profile-name"),
         profileGrade: document.getElementById("profile-grade"),
         profileSchool: document.getElementById("profile-school"),
-        profileGoal: document.getElementById("profile-goal"),
         profileForm: document.getElementById("profile-form"),
         profileBioInput: document.getElementById("profile-bio-input"),
         profileAvatarInput: document.getElementById("profile-avatar-input"),
@@ -2701,6 +2928,7 @@
         scheduleType: document.getElementById("schedule-type"),
         scheduleSetup: document.getElementById("schedule-setup"),
         scheduleSetupOptions: document.getElementById("setup-options"),
+        scheduleSetupSchool: document.getElementById("setup-school"),
         scheduleSetupDetails: document.getElementById("setup-details"),
         scheduleSetupForms: document.getElementById("setup-forms"),
         scheduleSetupNote: document.getElementById("setup-note"),
@@ -2740,6 +2968,13 @@
         friendScheduleSubtitle: document.getElementById("friend-schedule-subtitle"),
         friendScheduleDay: document.getElementById("friend-schedule-day"),
         settingsList: document.getElementById("settings-list"),
+        feedbackWidget: document.getElementById("feedback-widget"),
+        feedbackToggle: document.getElementById("feedback-toggle"),
+        feedbackPanel: document.getElementById("feedback-panel"),
+        feedbackForm: document.getElementById("feedback-form"),
+        feedbackInput: document.getElementById("feedback-input"),
+        feedbackCancel: document.getElementById("feedback-cancel"),
+        feedbackStatus: document.getElementById("feedback-status"),
       };
 
       const studyElements = {
@@ -2833,8 +3068,9 @@
         elements.sidebarName.textContent = name;
         elements.profileName.textContent = name;
         elements.profileGrade.textContent = activeProfile.grade;
-        elements.profileSchool.textContent = activeProfile.school;
-        elements.profileGoal.textContent = activeProfile.goal;
+        if (elements.profileSchool) {
+          elements.profileSchool.textContent = profileState.school || "Not set";
+        }
         if (elements.classmateName) {
           elements.classmateName.textContent = classmateState.name || "Add a friend";
         }
@@ -2868,17 +3104,7 @@
         element.textContent = initials || "OR";
       };
 
-      const fallbackClassmates = ["Mia", "Noah", "Zoe", "Kai", "Avery", "Riley", "Sam", "Lena", "Omar", "Priya"];
-
-      const buildClassmates = (index) => {
-        const start = (index * 3) % fallbackClassmates.length;
-        return [
-          fallbackClassmates[start],
-          fallbackClassmates[(start + 1) % fallbackClassmates.length],
-          fallbackClassmates[(start + 2) % fallbackClassmates.length],
-          fallbackClassmates[(start + 3) % fallbackClassmates.length],
-        ];
-      };
+      const buildClassmates = () => [];
 
       const normalizeServerClasses = (classes) => {
         if (!Array.isArray(classes) || !classes.length) {
@@ -3000,9 +3226,11 @@
           const profile = data.profile || {};
           profileState.bio = profile.bio || "";
           profileState.avatar = profile.avatar || "";
+          profileState.school = profile.school || "";
         } catch (error) {
           profileState.bio = "";
           profileState.avatar = "";
+          profileState.school = "";
         }
         applyProfileForm();
       };
@@ -3012,7 +3240,9 @@
           const response = await fetch("/api/profile", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ profile: { bio: profileState.bio, avatar: profileState.avatar } }),
+            body: JSON.stringify({
+              profile: { bio: profileState.bio, avatar: profileState.avatar, school: profileState.school },
+            }),
           });
           if (response.status === 401) {
             window.location.href = "/signin";
@@ -3156,6 +3386,9 @@
       };
 
       const setPage = (page) => {
+        if (!page || !pageTitles[page]) {
+          return;
+        }
         state.page = page;
         document.querySelectorAll(".page").forEach((section) => {
           section.classList.toggle("active", section.dataset.page === page);
@@ -3163,8 +3396,12 @@
         document.querySelectorAll("[data-page-target]").forEach((button) => {
           button.classList.toggle("active", button.dataset.pageTarget === page);
         });
-        elements.pageTitle.textContent = pageTitles[page].title;
-        elements.pageSubtitle.textContent = pageTitles[page].subtitle;
+        if (elements.pageTitle) {
+          elements.pageTitle.textContent = pageTitles[page].title;
+        }
+        if (elements.pageSubtitle) {
+          elements.pageSubtitle.textContent = pageTitles[page].subtitle;
+        }
       };
 
       const renderSchedule = () => {
@@ -3330,7 +3567,7 @@
         classmateState.schedule = createEmptySchedule();
         classmateState.classes = [];
         classmateState.loaded = false;
-        storage.set(classmateStorageKey, "");
+        storage.set(classmateStorageKey(), "");
         updateClassmateLabel();
         updateClassmateToggleState();
         updateClassmateSelectVisibility();
@@ -3377,7 +3614,7 @@
         classmateState.schedule = createEmptySchedule();
         classmateState.classes = [];
         classmateState.loaded = false;
-        storage.set(classmateStorageKey, username);
+        storage.set(classmateStorageKey(), username);
         updateClassmateLabel();
         updateClassmateToggleState();
         updateClassmateSelectVisibility();
@@ -3407,7 +3644,7 @@
           resetClassmateState();
           return;
         }
-        const stored = storage.get(classmateStorageKey, "");
+        const stored = readScopedOrLegacy("orbitClassmate", "");
         const selected =
           options.find((option) => option.username.toLowerCase() === String(stored || "").toLowerCase()) ||
           options[0];
@@ -3442,6 +3679,9 @@
           elements.scheduleSetupOptions.querySelectorAll("button").forEach((button) => {
             button.classList.remove("active");
           });
+        }
+        if (elements.scheduleSetupSchool) {
+          elements.scheduleSetupSchool.value = profileState.school || "";
         }
         if (elements.scheduleSetupDetails) {
           elements.scheduleSetupDetails.hidden = true;
@@ -3731,6 +3971,11 @@
               "Could not save schedule. Check your connection and try again.";
           }
           return;
+        }
+        if (elements.scheduleSetupSchool) {
+          profileState.school = elements.scheduleSetupSchool.value.trim();
+          await saveProfile();
+          applyDemoProfile();
         }
         closeScheduleSetup();
         state.scheduleView = "my";
@@ -4146,7 +4391,8 @@
           const classInfo = getClassById(target.id);
           if (classInfo) {
             title = classInfo.name;
-            subtitle = `${classInfo.room} · ${classInfo.classmates.length} classmates`;
+            const classmateCount = Array.isArray(classInfo.classmates) ? classInfo.classmates.length : 0;
+            subtitle = classmateCount ? `${classInfo.room} · ${classmateCount} classmates` : `${classInfo.room} · Class chat`;
           } else {
             title = target.id;
             subtitle = "Class chat";
@@ -4193,14 +4439,23 @@
       const studyStorage = {
         get(key, fallback) {
           try {
-            const value = localStorage.getItem(key);
-            return value ? JSON.parse(value) : fallback;
+            const scopedValue = localStorage.getItem(scopedStorageKey(key));
+            if (scopedValue !== null) {
+              return JSON.parse(scopedValue);
+            }
+            const legacyValue = localStorage.getItem(key);
+            if (legacyValue !== null) {
+              const parsed = JSON.parse(legacyValue);
+              localStorage.setItem(scopedStorageKey(key), JSON.stringify(parsed));
+              return parsed;
+            }
+            return fallback;
           } catch (error) {
             return fallback;
           }
         },
         set(key, value) {
-          localStorage.setItem(key, JSON.stringify(value));
+          localStorage.setItem(scopedStorageKey(key), JSON.stringify(value));
         },
       };
 
@@ -4312,6 +4567,69 @@
 
       const getSetVisibility = (set) => (set?.visibility === "public" ? "public" : "private");
 
+      const buildStudySeed = () => {
+        const username = String(activeProfile.name || "").trim().toLowerCase() || "user";
+        const setDefinitions = [
+          {
+            title: "Biology Essentials",
+            description: "Cells, energy, and genetics quick review.",
+            visibility: "private",
+            cards: [
+              ["Mitosis", "Cell division that makes two identical daughter cells."],
+              ["ATP", "Primary energy-carrying molecule in cells."],
+              ["Osmosis", "Diffusion of water through a semipermeable membrane."],
+              ["Ribosome", "Cell structure where proteins are synthesized."],
+            ],
+          },
+          {
+            title: "US History Key Terms",
+            description: "Important events and ideas for upcoming quiz.",
+            visibility: "public",
+            cards: [
+              ["Federalism", "Power shared between national and state governments."],
+              ["New Deal", "Programs introduced to respond to the Great Depression."],
+              ["Cold War", "Long geopolitical tension between the US and USSR."],
+              ["Civil Rights Act", "Law banning discrimination in public life."],
+            ],
+          },
+        ];
+        const sets = setDefinitions.map((definition, index) => ({
+          id: `seed-set-${username}-${index + 1}`,
+          title: definition.title,
+          description: definition.description,
+          createdAt: new Date().toISOString(),
+          visibility: definition.visibility,
+        }));
+        const cards = [];
+        setDefinitions.forEach((definition, setIndex) => {
+          definition.cards.forEach((pair, cardIndex) => {
+            cards.push({
+              id: `seed-card-${username}-${setIndex + 1}-${cardIndex + 1}`,
+              setId: sets[setIndex].id,
+              term: pair[0],
+              definition: pair[1],
+              starred: false,
+            });
+          });
+        });
+        const progress = {};
+        cards.forEach((card) => {
+          progress[card.id] = {
+            cardId: card.id,
+            seenCount: 0,
+            correctCount: 0,
+            wrongCount: 0,
+            mastery: 0,
+          };
+        });
+        return {
+          sets,
+          cards,
+          progress,
+          activeSet: sets[0]?.id || null,
+        };
+      };
+
       const loadStudyData = () => {
         studyData.sets = studyStorage.get(studyKeys.sets, []).map((set) => ({
           ...set,
@@ -4319,6 +4637,14 @@
         }));
         studyData.cards = studyStorage.get(studyKeys.cards, []);
         studyData.progress = studyStorage.get(studyKeys.progress, {});
+        if (!studyData.sets.length && !studyData.cards.length) {
+          const seeded = buildStudySeed();
+          studyData.sets = seeded.sets;
+          studyData.cards = seeded.cards;
+          studyData.progress = seeded.progress;
+          studyState.selectedSetId = seeded.activeSet;
+          saveStudyData();
+        }
         const savedSet = studyStorage.get(studyKeys.activeSet, null);
         const validSaved = savedSet && studyData.sets.some((set) => set.id === savedSet);
         studyState.selectedSetId = validSaved ? savedSet : studyData.sets[0]?.id || null;
@@ -5566,11 +5892,12 @@
       };
 
       const loadScheduleExtras = () => {
-        state.scheduleExtras = storage.get("orbitScheduleExtras", []);
+        const stored = readScopedOrLegacy("orbitScheduleExtras", []);
+        state.scheduleExtras = Array.isArray(stored) ? stored : [];
       };
 
       const saveScheduleExtras = () => {
-        storage.set("orbitScheduleExtras", state.scheduleExtras);
+        storage.set(scopedStorageKey("orbitScheduleExtras"), state.scheduleExtras);
       };
 
       const addScheduleItem = (event) => {
@@ -5597,19 +5924,19 @@
         renderSchedule();
       };
 
-      const loadTodos = (useSeed = true) => {
-        const stored = storage.get("orbitTodos", []);
-        if (stored.length) {
+      const loadTodos = () => {
+        const stored = readScopedOrLegacy("orbitTodos", []);
+        if (Array.isArray(stored) && stored.length) {
           state.todos = stored;
         } else {
-          state.todos = [];
-          storage.set("orbitTodos", state.todos);
+          state.todos = buildTodosSeed();
+          storage.set(scopedStorageKey("orbitTodos"), state.todos);
         }
         pruneTodos();
       };
 
       const saveTodos = () => {
-        storage.set("orbitTodos", state.todos);
+        storage.set(scopedStorageKey("orbitTodos"), state.todos);
       };
 
       const isPastDueDate = (dueDate) => {
@@ -6378,10 +6705,20 @@
       };
 
       const initNavigation = () => {
+        const handleNav = (event) => {
+          const target = event.currentTarget.getAttribute("data-page-target");
+          setPage(target);
+        };
         document.querySelectorAll("[data-page-target]").forEach((button) => {
-          button.addEventListener("click", () => {
-            setPage(button.dataset.pageTarget);
-          });
+          button.addEventListener("click", handleNav);
+          button.addEventListener(
+            "touchend",
+            (event) => {
+              event.preventDefault();
+              handleNav(event);
+            },
+            { passive: false }
+          );
         });
       };
 
@@ -6457,16 +6794,123 @@
         }
       };
 
+      const setFeedbackOpen = (open) => {
+        if (!elements.feedbackWidget || !elements.feedbackToggle || !elements.feedbackPanel) {
+          return;
+        }
+        elements.feedbackWidget.classList.toggle("open", open);
+        elements.feedbackToggle.setAttribute("aria-expanded", String(open));
+        elements.feedbackPanel.setAttribute("aria-hidden", String(!open));
+        if (open && elements.feedbackInput) {
+          elements.feedbackInput.focus();
+        }
+      };
+
+      const setFeedbackStatus = (message, kind) => {
+        if (!elements.feedbackStatus) {
+          return;
+        }
+        elements.feedbackStatus.textContent = message || "";
+        elements.feedbackStatus.classList.remove("error", "success");
+        if (kind) {
+          elements.feedbackStatus.classList.add(kind);
+        }
+      };
+
+      const setFeedbackBusy = (busy) => {
+        if (!elements.feedbackForm) {
+          return;
+        }
+        elements.feedbackForm.querySelectorAll("button, textarea").forEach((field) => {
+          field.disabled = busy;
+        });
+      };
+
+      const sendFeedback = async () => {
+        if (!elements.feedbackInput) {
+          return;
+        }
+        const message = elements.feedbackInput.value.trim();
+        if (!message) {
+          setFeedbackStatus("Tell us what's wrong first.", "error");
+          elements.feedbackInput.focus();
+          return;
+        }
+        setFeedbackStatus("Sending...");
+        setFeedbackBusy(true);
+        try {
+          const response = await fetch("/api/feedback", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ issue: message }),
+          });
+          if (response.status === 401) {
+            window.location.href = "/signin";
+            return;
+          }
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            setFeedbackStatus(data.error || "Feedback failed.", "error");
+            return;
+          }
+          elements.feedbackInput.value = "";
+          setFeedbackStatus("Thanks! Your feedback was saved.", "success");
+        } catch (error) {
+          setFeedbackStatus("Network error. Try again.", "error");
+        } finally {
+          setFeedbackBusy(false);
+        }
+      };
+
+      const initFeedback = () => {
+        if (!elements.feedbackWidget || !elements.feedbackToggle || !elements.feedbackPanel) {
+          return;
+        }
+        elements.feedbackToggle.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const isOpen = elements.feedbackWidget.classList.contains("open");
+          setFeedbackStatus("");
+          setFeedbackOpen(!isOpen);
+        });
+        if (elements.feedbackCancel) {
+          elements.feedbackCancel.addEventListener("click", () => {
+            setFeedbackOpen(false);
+          });
+        }
+        if (elements.feedbackPanel) {
+          elements.feedbackPanel.addEventListener("click", (event) => {
+            event.stopPropagation();
+          });
+        }
+        document.addEventListener("click", () => {
+          setFeedbackOpen(false);
+        });
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            setFeedbackOpen(false);
+          }
+        });
+        if (elements.feedbackForm) {
+          elements.feedbackForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            sendFeedback();
+          });
+        }
+      };
+
       const init = async () => {
         initNavigation();
         initSchedule();
         initScheduleSetup();
         initChat();
-        initStudySystem();
-        initTodos();
         initFriends();
         initProfile();
         initAuth();
+        initFeedback();
+
+        await loadUser();
+        initStudySystem();
+        initTodos();
 
         await loadSettings();
         applySettings();
@@ -6474,7 +6918,6 @@
 
         loadScheduleExtras();
 
-        await loadUser();
         await loadProfile();
         const serverData = await loadServerData();
         if (shouldStartScheduleSetup(serverData)) {
@@ -6484,7 +6927,7 @@
           mockData.schedules.my = buildEmptySchedule();
           openScheduleSetup();
         }
-        loadTodos(!serverData);
+        loadTodos();
         await loadChats();
         await loadFriends();
         await loadFriendRequests();

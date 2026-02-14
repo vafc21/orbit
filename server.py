@@ -23,6 +23,8 @@ USER_FILE = APP_DIR / "orbit-user.json"
 CHAT_DIR = APP_DIR / "orbit-chats"
 ASSET_DIR = APP_DIR / "assets"
 CHAT_KEY_FILE = APP_DIR / "orbit-chat.key"
+FEEDBACK_DIR = APP_DIR / "feedback"
+FEEDBACK_BLOCKLIST_FILE = FEEDBACK_DIR / "blocked.txt"
 
 SESSION_COOKIE = "orbit_session"
 SESSIONS = {}
@@ -33,6 +35,7 @@ DEMO_PASSWORD = "orbitdemo"
 DEMO_USERNAMES = ["jordan", "avery", "riley"]
 CHAT_RETENTION_DAYS = 30
 MAX_AVATAR_CHARS = 1_500_000
+MAX_SCHOOL_CHARS = 120
 CHAT_KEY_CACHE = None
 
 
@@ -91,6 +94,33 @@ def chat_encryption_key():
 
 def ensure_chat_dir():
     CHAT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def ensure_feedback_dir():
+    FEEDBACK_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def load_feedback_blocklist():
+    if not FEEDBACK_BLOCKLIST_FILE.exists():
+        return set()
+    blocked = set()
+    try:
+        for line in FEEDBACK_BLOCKLIST_FILE.read_text(encoding="utf-8").splitlines():
+            cleaned = line.strip()
+            if not cleaned or cleaned.startswith("#"):
+                continue
+            blocked.add(cleaned.lower())
+    except Exception:
+        return set()
+    return blocked
+
+
+def feedback_entry_path(username, created_at):
+    ensure_feedback_dir()
+    safe_user = safe_username(username) or "user"
+    stamp = created_at.strftime("%Y%m%dT%H%M%SZ")
+    token = secrets.token_hex(3)
+    return FEEDBACK_DIR / f"feedback-{stamp}-{safe_user}-{token}.json"
 
 
 def safe_username(username):
@@ -531,19 +561,22 @@ def get_user_groups(username):
 
 def sanitize_profile(profile):
     if not isinstance(profile, dict):
-        return {"bio": "", "avatar": ""}
+        return {"bio": "", "avatar": "", "school": ""}
     bio = str(profile.get("bio") or "").strip()
     avatar = str(profile.get("avatar") or "").strip()
+    school = str(profile.get("school") or "").strip()
     if len(avatar) > MAX_AVATAR_CHARS:
         avatar = ""
-    return {"bio": bio, "avatar": avatar}
+    if len(school) > MAX_SCHOOL_CHARS:
+        school = school[:MAX_SCHOOL_CHARS]
+    return {"bio": bio, "avatar": avatar, "school": school}
 
 
 def get_user_profile(username):
     store, entry, changed = get_user_entry(username)
     profile = entry.get("profile")
     if not isinstance(profile, dict):
-        profile = {"bio": "", "avatar": ""}
+        profile = {"bio": "", "avatar": "", "school": ""}
         entry["profile"] = profile
         changed = True
     cleaned = sanitize_profile(profile)
@@ -1513,6 +1546,36 @@ class OrbitHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": "settings required"}, status=HTTPStatus.BAD_REQUEST)
                 return
             save_user_settings(user, settings)
+            self._send_json({"ok": True})
+            return
+
+        if path == "/api/feedback":
+            user = self._require_auth()
+            if not user:
+                return
+            blocked = load_feedback_blocklist()
+            if user.lower() in blocked:
+                self._send_json({"error": "feedback disabled"}, status=HTTPStatus.FORBIDDEN)
+                return
+            payload = self._read_json()
+            if payload is None:
+                return
+            message = str(payload.get("issue") or payload.get("message") or payload.get("text") or "").strip()
+            if not message:
+                self._send_json({"error": "feedback required"}, status=HTTPStatus.BAD_REQUEST)
+                return
+            now = datetime.utcnow()
+            entry = {
+                "user": user,
+                "issue": message,
+                "created_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            }
+            path = feedback_entry_path(user, now)
+            write_json(path, entry)
+            try:
+                os.chmod(path, 0o600)
+            except Exception:
+                pass
             self._send_json({"ok": True})
             return
 
