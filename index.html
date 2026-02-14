@@ -375,6 +375,21 @@
         }
       }
 
+      @keyframes countdown-tick {
+        0% {
+          transform: scale(1);
+          text-shadow: none;
+        }
+        40% {
+          transform: scale(1.08);
+          text-shadow: 0 10px 22px rgba(22, 183, 154, 0.3);
+        }
+        100% {
+          transform: scale(1);
+          text-shadow: none;
+        }
+      }
+
       .card {
         background: var(--surface);
         border: 1px solid var(--border);
@@ -414,6 +429,32 @@
       .segmented button.active {
         background: rgba(45, 226, 166, 0.2);
         color: var(--text);
+      }
+
+      .segmented button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .schedule-controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .schedule-select {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 8px 12px;
+        color: var(--text);
+        font-family: inherit;
+        font-weight: 600;
+      }
+
+      .schedule-select:disabled {
+        opacity: 0.6;
       }
 
       .schedule-layout {
@@ -485,10 +526,45 @@
         color: var(--text);
       }
 
+      .countdown-hero {
+        display: flex;
+        justify-content: center;
+      }
+
+      .countdown-card {
+        width: min(720px, 100%);
+        text-align: center;
+        padding: 28px 22px 24px;
+        position: relative;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at top, rgba(22, 183, 154, 0.18), transparent 55%),
+          linear-gradient(135deg, rgba(244, 184, 96, 0.14), rgba(44, 123, 229, 0.12));
+        border: 1px solid rgba(15, 23, 42, 0.08);
+      }
+
+      body.midnight .countdown-card {
+        background:
+          radial-gradient(circle at top, rgba(22, 183, 154, 0.2), transparent 60%),
+          linear-gradient(135deg, rgba(44, 123, 229, 0.18), rgba(15, 23, 42, 0.55));
+        border-color: rgba(255, 255, 255, 0.08);
+      }
+
+      .countdown-card h3 {
+        font-size: 1.2rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
       .countdown-time {
-        font-size: 2rem;
-        font-weight: 700;
+        font-size: clamp(2.6rem, 4vw, 3.6rem);
+        font-weight: 750;
         margin: 12px 0 6px;
+        letter-spacing: 0.08em;
+      }
+
+      .countdown-time.tick {
+        animation: countdown-tick 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
       }
 
       .countdown-meta {
@@ -497,6 +573,7 @@
         gap: 8px;
         color: var(--muted);
         font-size: 0.9rem;
+        justify-content: center;
       }
 
       .schedule-form {
@@ -512,6 +589,176 @@
         padding: 10px 12px;
         color: var(--text);
         font-family: inherit;
+      }
+
+      .schedule-setup {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(11, 15, 22, 0.55);
+        z-index: 50;
+      }
+
+      .schedule-setup.active {
+        display: flex;
+      }
+
+      .setup-card {
+        width: min(960px, 100%);
+        max-height: 92vh;
+        overflow: auto;
+        display: grid;
+        gap: 18px;
+      }
+
+      .setup-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .setup-step {
+        font-size: 0.85rem;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(22, 183, 154, 0.14);
+        font-weight: 600;
+      }
+
+      .setup-options {
+        display: grid;
+        gap: 12px;
+      }
+
+      .setup-option {
+        text-align: left;
+        background: var(--surface-2);
+        border: 1px solid transparent;
+        border-radius: var(--radius-md);
+        padding: 14px;
+        color: var(--text);
+        display: grid;
+        gap: 6px;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      .setup-option span {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .setup-option.active {
+        border-color: rgba(22, 183, 154, 0.6);
+        background: rgba(22, 183, 154, 0.12);
+      }
+
+      .setup-details {
+        display: grid;
+        gap: 12px;
+      }
+
+      .setup-details[hidden] {
+        display: none;
+      }
+
+      .setup-note {
+        background: var(--surface-2);
+        border-radius: 12px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .setup-forms {
+        display: grid;
+        gap: 12px;
+      }
+
+      .setup-day {
+        background: var(--surface-2);
+        border-radius: 16px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        display: grid;
+        gap: 10px;
+      }
+
+      .setup-day h4 {
+        margin: 0;
+        font-size: 0.95rem;
+      }
+
+      .setup-rows {
+        display: grid;
+        gap: 10px;
+      }
+
+      .setup-row {
+        display: grid;
+        gap: 8px;
+      }
+
+      .setup-row input {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 8px 10px;
+        color: var(--text);
+        font-family: inherit;
+      }
+
+      .setup-row.error input {
+        border-color: rgba(225, 84, 84, 0.6);
+      }
+
+      .setup-row button {
+        justify-self: start;
+      }
+
+      .setup-add {
+        align-self: start;
+      }
+
+      .setup-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .setup-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .setup-error {
+        min-height: 18px;
+        color: var(--danger);
+        font-size: 0.9rem;
+      }
+
+      @media (min-width: 900px) {
+        .setup-options {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .setup-row {
+          grid-template-columns: minmax(180px, 1.4fr) repeat(2, 120px) minmax(120px, 1fr) auto;
+          align-items: center;
+        }
+
+        .setup-row button {
+          justify-self: end;
+        }
       }
 
       .tag {
@@ -672,6 +919,24 @@
       .study-stage.active {
         display: grid;
         animation: stageIn 0.45s ease;
+      }
+
+      .study-workspace {
+        display: grid;
+        gap: 20px;
+      }
+
+      .study-workspace-view {
+        display: none;
+        gap: 20px;
+      }
+
+      .study-workspace-view.active {
+        display: grid;
+      }
+
+      .study-workspace-view[data-study-view="study"] {
+        min-height: 60vh;
       }
 
       .study-hero {
@@ -851,6 +1116,32 @@
 
       .study-form .toggle-inline {
         align-items: center;
+      }
+
+      .study-import-controls {
+        display: grid;
+        gap: 10px;
+      }
+
+      .study-import-status {
+        min-height: 18px;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      .study-import-status.success {
+        color: var(--success);
+      }
+
+      .study-import-status.error {
+        color: var(--danger);
+      }
+
+      @media (min-width: 720px) {
+        .study-import-controls {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          align-items: end;
+        }
       }
 
       .study-panel-header {
@@ -1183,6 +1474,58 @@
         gap: 10px;
       }
 
+      .friends-layout {
+        display: grid;
+        gap: 16px;
+      }
+
+      .friends-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .friends-search {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .friends-search input {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px 12px;
+        color: var(--text);
+        font-family: inherit;
+        min-width: 200px;
+      }
+
+      .friends-schedule-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .friends-schedule-actions label {
+        display: grid;
+        gap: 6px;
+        font-size: 0.85rem;
+      }
+
+      .friends-schedule-actions select {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 8px 10px;
+        color: var(--text);
+        font-family: inherit;
+      }
+
       .friend-requests {
         display: grid;
         gap: 10px;
@@ -1204,6 +1547,11 @@
         align-items: center;
         justify-content: space-between;
         gap: 10px;
+      }
+
+      .friend-item.active {
+        border-color: rgba(22, 183, 154, 0.45);
+        box-shadow: var(--shadow-soft);
       }
 
       .friend-item-actions {
@@ -1386,6 +1734,11 @@
           overflow: visible;
         }
 
+        .friends-layout {
+          grid-template-columns: 1.1fr 1.4fr;
+          align-items: start;
+        }
+
         .study-set-grid {
           grid-template-columns: 1.2fr 1fr;
           align-items: start;
@@ -1428,6 +1781,7 @@
         <nav class="nav-list">
           <button class="nav-button active" data-page-target="schedule">Schedule</button>
           <button class="nav-button" data-page-target="chat">Chat</button>
+          <button class="nav-button" data-page-target="friends">Friends</button>
           <button class="nav-button" data-page-target="study">Study</button>
           <button class="nav-button" data-page-target="todo">To-Do</button>
           <button class="nav-button" data-page-target="profile">Profile</button>
@@ -1467,24 +1821,29 @@
         </header>
 
         <section class="page active" data-page="schedule">
+          <div class="countdown-hero">
+            <div class="card countdown-card" id="countdown-card">
+              <h3>Countdown</h3>
+              <p class="muted" id="countdown-status">Loading your next class...</p>
+              <div class="countdown-time" id="countdown-time">--:--:--</div>
+              <div class="countdown-meta" id="countdown-meta"></div>
+            </div>
+          </div>
           <div class="card">
             <h3>Weekly schedule</h3>
             <p class="muted">Tap any class block to see who is in it, where to go, and what's next.</p>
-            <div class="segmented" id="schedule-toggle">
-              <button class="active" data-schedule-view="my">My schedule</button>
-              <button data-schedule-view="classmate">Classmate: <span id="classmate-name">Avery</span></button>
+            <div class="schedule-controls">
+              <div class="segmented" id="schedule-toggle">
+                <button class="active" data-schedule-view="my">My schedule</button>
+                <button data-schedule-view="classmate">Classmate: <span id="classmate-name">Add a friend</span></button>
+              </div>
+              <select class="schedule-select" id="classmate-select" aria-label="Choose friend schedule" hidden></select>
             </div>
           </div>
 
           <div class="schedule-layout">
             <div class="schedule-grid" id="schedule-grid"></div>
             <div class="schedule-side">
-              <div class="card" id="countdown-card">
-                <h3>Countdown</h3>
-                <p class="muted" id="countdown-status">Loading your next class...</p>
-                <div class="countdown-time" id="countdown-time">--:--:--</div>
-                <div class="countdown-meta" id="countdown-meta"></div>
-              </div>
               <div class="card" id="class-details">
                 <h3>Class details</h3>
                 <p class="muted">Select a class block to see details.</p>
@@ -1513,6 +1872,43 @@
                   </select>
                   <button class="primary-button" type="submit">Add to schedule</button>
                 </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="schedule-setup" id="schedule-setup" aria-hidden="true">
+            <div class="card setup-card" role="dialog" aria-modal="true" aria-labelledby="setup-title">
+              <div class="setup-header">
+                <div>
+                  <h3 id="setup-title">Schedule setup</h3>
+                  <p class="muted">Choose how your school week repeats, then add your classes.</p>
+                </div>
+                <span class="setup-step" id="setup-step">Step 1 of 2</span>
+              </div>
+              <div class="setup-options" id="setup-options">
+                <button class="setup-option" type="button" data-setup-type="daily">
+                  <strong>Every day same schedule</strong>
+                  <span>The same class order and times every weekday.</span>
+                </button>
+                <button class="setup-option" type="button" data-setup-type="ab">
+                  <strong>A/B days</strong>
+                  <span>Two schedules that alternate across the week, like Mon A and Tue B.</span>
+                </button>
+                <button class="setup-option" type="button" data-setup-type="block">
+                  <strong>Block schedule</strong>
+                  <span>Fewer, longer class blocks with different days rotating.</span>
+                </button>
+              </div>
+              <div class="setup-details" id="setup-details" hidden>
+                <div class="setup-note" id="setup-note"></div>
+                <div class="setup-forms" id="setup-forms"></div>
+              </div>
+              <div class="setup-footer">
+                <div class="setup-error" id="setup-error"></div>
+                <div class="setup-actions">
+                  <button class="ghost-button" type="button" id="setup-back" hidden>Back</button>
+                  <button class="primary-button" type="button" id="setup-save" disabled>Save schedule</button>
+                </div>
               </div>
             </div>
           </div>
@@ -1556,6 +1952,62 @@
           </div>
         </section>
 
+        <section class="page" data-page="friends">
+          <div class="card">
+            <h3>Friends</h3>
+            <p class="muted">Add friends, search, and view their shared schedules.</p>
+          </div>
+          <div class="friends-layout">
+            <div class="card">
+              <div class="friends-header">
+                <div>
+                  <h3>Your friends</h3>
+                  <p class="muted">Add friends to chat and compare schedules.</p>
+                </div>
+                <div class="friends-search">
+                  <input id="friend-search" placeholder="Search by name or username" aria-label="Search friends" />
+                </div>
+              </div>
+              <form class="study-form" id="friend-form">
+                <label>
+                  Add friend
+                  <input id="friend-name" placeholder="Add a friend by username" required />
+                </label>
+                <button class="primary-button" type="submit">Add friend</button>
+              </form>
+              <div class="friend-list" id="friend-list"></div>
+              <div class="friend-requests">
+                <h4>Incoming requests</h4>
+                <div class="friend-list" id="friend-requests-incoming"></div>
+                <h4>Sent requests</h4>
+                <div class="friend-list" id="friend-requests-outgoing"></div>
+              </div>
+            </div>
+            <div class="card" id="friend-schedule-card">
+              <div class="friends-schedule-header">
+                <div>
+                  <h3 id="friend-schedule-title">Friend schedule</h3>
+                  <p class="muted" id="friend-schedule-subtitle">Select a friend to view their week.</p>
+                </div>
+                <div class="friends-schedule-actions">
+                  <label>
+                    <span class="muted">Day</span>
+                    <select id="friend-schedule-day">
+                      <option value="all">All days</option>
+                      <option value="Mon">Monday</option>
+                      <option value="Tue">Tuesday</option>
+                      <option value="Wed">Wednesday</option>
+                      <option value="Thu">Thursday</option>
+                      <option value="Fri">Friday</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+              <div class="schedule-grid" id="friend-schedule-grid"></div>
+            </div>
+          </div>
+        </section>
+
         <section class="page" data-page="study" id="study-root">
           <div class="study-stage active" data-study-stage="select">
             <div class="card study-hero">
@@ -1591,19 +2043,22 @@
           </div>
 
           <div class="study-stage" data-study-stage="workspace">
-            <div class="card study-workspace-header">
-              <div class="study-panel-header">
-                <div>
-                  <h3 id="study-workspace-title">Study workspace</h3>
-                  <p class="muted" id="study-workspace-subtitle">Choose a set to start studying.</p>
-                </div>
-                <div class="study-panel-actions">
-                  <button class="ghost-button" type="button" id="study-back-select">Back to selection</button>
+            <div class="study-workspace">
+              <div class="card study-workspace-header">
+                <div class="study-panel-header">
+                  <div>
+                    <h3 id="study-workspace-title">Study workspace</h3>
+                    <p class="muted" id="study-workspace-subtitle">Choose a set to start studying.</p>
+                  </div>
+                  <div class="study-panel-actions">
+                    <button class="ghost-button" type="button" id="study-edit-toggle">Edit set</button>
+                    <button class="ghost-button" type="button" id="study-back-select">Back to selection</button>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div class="card">
+              <div class="study-workspace-view" data-study-view="edit">
+                <div class="card">
               <h3>Your study sets</h3>
               <p class="muted">Create sets with your own terms and definitions.</p>
               <div class="study-set-grid">
@@ -1621,12 +2076,12 @@
                     <input type="checkbox" id="study-set-public" />
                     <span>Make this set public</span>
                   </label>
-                  <button class="primary-button" type="submit">Create set</button>
+                <button class="primary-button" type="submit">Create set</button>
                 </form>
               </div>
             </div>
 
-            <div class="card">
+                <div class="card">
               <h3>Cards in this set</h3>
               <p class="muted">Add the terms and definitions you want to study.</p>
               <form class="study-form" id="study-card-form">
@@ -1643,7 +2098,39 @@
               <div class="study-card-list" id="study-card-list"></div>
             </div>
 
-            <div class="card">
+                <div class="card">
+              <h3>Import cards</h3>
+              <p class="muted">Paste one card per line, like: term<TAB>definition.</p>
+              <form class="study-form" id="study-import-form">
+                <label>
+                  Paste list
+                  <textarea id="study-import-text" placeholder="Photosynthesis	Process plants use to make energy"></textarea>
+                </label>
+                <div class="study-import-controls">
+                  <label>
+                    Delimiter
+                    <select id="study-import-delimiter">
+                      <option value="tab">Tab</option>
+                      <option value="semicolon">Semicolon ;</option>
+                      <option value="dash">Dash -</option>
+                      <option value="comma">Comma ,</option>
+                      <option value="pipe">Pipe |</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </label>
+                  <label id="study-import-custom-wrap" hidden>
+                    Custom delimiter
+                    <input id="study-import-custom" placeholder="::" />
+                  </label>
+                </div>
+                <button class="primary-button" type="submit">Import cards</button>
+                <div class="study-import-status" id="study-import-status"></div>
+              </form>
+            </div>
+              </div>
+
+              <div class="study-workspace-view active" data-study-view="study">
+                <div class="card">
               <h3>Study modes</h3>
               <p class="muted">Pick a mode for the selected set.</p>
               <div class="study-modes" id="study-mode-toggle">
@@ -1654,7 +2141,7 @@
               </div>
             </div>
 
-            <div class="card study-panel active" data-study-panel="flashcards">
+                <div class="card study-panel active" data-study-panel="flashcards">
               <div class="study-panel-header">
                 <div>
                   <h3>Flashcards</h3>
@@ -1681,7 +2168,7 @@
               </div>
             </div>
 
-            <div class="card study-panel" data-study-panel="learn">
+                <div class="card study-panel" data-study-panel="learn">
               <div class="study-panel-header">
                 <div>
                   <h3>Practice</h3>
@@ -1696,7 +2183,7 @@
               <div class="quiz-card" id="practice-card"></div>
             </div>
 
-            <div class="card study-panel" data-study-panel="test">
+                <div class="card study-panel" data-study-panel="test">
               <div class="study-panel-header">
                 <div>
                   <h3>Test</h3>
@@ -1710,7 +2197,7 @@
               <div class="quiz-card" id="test-card"></div>
             </div>
 
-            <div class="card study-panel" data-study-panel="match">
+                <div class="card study-panel" data-study-panel="match">
               <div class="study-panel-header">
                 <div>
                   <h3>Match</h3>
@@ -1726,6 +2213,8 @@
                   <div class="matching-list" id="match-terms"></div>
                   <div class="matching-list" id="match-definitions"></div>
                 </div>
+              </div>
+            </div>
               </div>
             </div>
           </div>
@@ -1802,24 +2291,6 @@
             </div>
           </div>
           <div class="card">
-            <h3>Friends</h3>
-            <p class="muted">Send a request first. They accept before you can chat.</p>
-            <form class="study-form" id="friend-form">
-              <label>
-                Add friend
-                <input id="friend-name" placeholder="Add a friend by username" required />
-              </label>
-              <button class="primary-button" type="submit">Add friend</button>
-            </form>
-            <div class="friend-list" id="friend-list"></div>
-            <div class="friend-requests">
-              <h4>Incoming requests</h4>
-              <div class="friend-list" id="friend-requests-incoming"></div>
-              <h4>Sent requests</h4>
-              <div class="friend-list" id="friend-requests-outgoing"></div>
-            </div>
-          </div>
-          <div class="card">
             <h3>Settings</h3>
             <div class="settings-list" id="settings-list"></div>
           </div>
@@ -1830,6 +2301,7 @@
     <nav class="bottom-nav">
       <button class="active" data-page-target="schedule">Schedule</button>
       <button data-page-target="chat">Chat</button>
+      <button data-page-target="friends">Friends</button>
       <button data-page-target="study">Study</button>
       <button data-page-target="todo">To-Do</button>
       <button data-page-target="profile">Profile</button>
@@ -1837,6 +2309,14 @@
 
     <script>
       const dayOrder = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+
+      const createEmptySchedule = () => {
+        const schedule = {};
+        dayOrder.forEach((day) => {
+          schedule[day] = [];
+        });
+        return schedule;
+      };
 
       const demoProfiles = [
         {
@@ -1882,33 +2362,7 @@
       };
 
       const buildTodosSeed = () => {
-        const today = new Date();
-        return [
-          {
-            id: "seed-1",
-            classId: "alg2",
-            title: "Problem set 6",
-            dueDate: formatInputDate(addDays(today, -1)),
-            notes: "Focus on factoring trinomials.",
-            completed: false,
-          },
-          {
-            id: "seed-2",
-            classId: "hist",
-            title: "Outline chapter 9",
-            dueDate: formatInputDate(addDays(today, 1)),
-            notes: "Include key Progressive Era figures.",
-            completed: false,
-          },
-          {
-            id: "seed-3",
-            classId: "chem",
-            title: "Lab reflection",
-            dueDate: formatInputDate(addDays(today, 3)),
-            notes: "Explain the reaction outcome.",
-            completed: true,
-          },
-        ];
+        return [];
       };
 
       const shiftTime = (time, minutes) => {
@@ -1933,101 +2387,47 @@
       };
 
       const baseSchedule = {
-        my: {
-          Mon: [
-            { classId: "alg2", start: "8:10", end: "9:00", period: 1 },
-            { classId: "hist", start: "9:05", end: "9:55", period: 2 },
-            { classId: "chem", start: "10:05", end: "10:55", period: 3 },
-            { classId: "span", start: "11:05", end: "11:55", period: 4 },
-            { classId: "write", start: "1:15", end: "2:05", period: 5 },
-          ],
-          Tue: [
-            { classId: "alg2", start: "8:10", end: "9:00", period: 1 },
-            { classId: "cs", start: "9:05", end: "9:55", period: 2 },
-            { classId: "chem", start: "10:05", end: "10:55", period: 3 },
-            { classId: "span", start: "11:05", end: "11:55", period: 4 },
-            { classId: "pe", start: "1:15", end: "2:05", period: 5 },
-          ],
-          Wed: [
-            { classId: "alg2", start: "8:10", end: "9:00", period: 1 },
-            { classId: "hist", start: "9:05", end: "9:55", period: 2 },
-            { classId: "chem", start: "10:05", end: "10:55", period: 3 },
-            { classId: "write", start: "11:05", end: "11:55", period: 4 },
-            { classId: "study", start: "1:15", end: "2:05", period: 5 },
-          ],
-          Thu: [
-            { classId: "alg2", start: "8:10", end: "9:00", period: 1 },
-            { classId: "cs", start: "9:05", end: "9:55", period: 2 },
-            { classId: "chem", start: "10:05", end: "10:55", period: 3 },
-            { classId: "span", start: "11:05", end: "11:55", period: 4 },
-            { classId: "club", start: "1:15", end: "2:20", period: 5 },
-          ],
-          Fri: [
-            { classId: "alg2", start: "8:10", end: "9:00", period: 1 },
-            { classId: "hist", start: "9:05", end: "9:55", period: 2 },
-            { classId: "chem", start: "10:05", end: "10:55", period: 3 },
-            { classId: "span", start: "11:05", end: "11:55", period: 4 },
-            { classId: "write", start: "1:15", end: "2:05", period: 5 },
-          ],
-        },
-        classmate: {
-          name: "Avery",
-          schedule: {
-            Mon: [
-              { classId: "cs", start: "8:10", end: "9:00", period: 1 },
-              { classId: "hist", start: "9:05", end: "9:55", period: 2 },
-              { classId: "chem", start: "10:05", end: "10:55", period: 3 },
-              { classId: "study", start: "11:05", end: "11:55", period: 4 },
-              { classId: "pe", start: "1:15", end: "2:05", period: 5 },
-            ],
-            Tue: [
-              { classId: "cs", start: "8:10", end: "9:00", period: 1 },
-              { classId: "alg2", start: "9:05", end: "9:55", period: 2 },
-              { classId: "chem", start: "10:05", end: "10:55", period: 3 },
-              { classId: "span", start: "11:05", end: "11:55", period: 4 },
-              { classId: "write", start: "1:15", end: "2:05", period: 5 },
-            ],
-            Wed: [
-              { classId: "cs", start: "8:10", end: "9:00", period: 1 },
-              { classId: "hist", start: "9:05", end: "9:55", period: 2 },
-              { classId: "chem", start: "10:05", end: "10:55", period: 3 },
-              { classId: "study", start: "11:05", end: "11:55", period: 4 },
-              { classId: "club", start: "1:15", end: "2:20", period: 5 },
-            ],
-            Thu: [
-              { classId: "cs", start: "8:10", end: "9:00", period: 1 },
-              { classId: "alg2", start: "9:05", end: "9:55", period: 2 },
-              { classId: "chem", start: "10:05", end: "10:55", period: 3 },
-              { classId: "span", start: "11:05", end: "11:55", period: 4 },
-              { classId: "pe", start: "1:15", end: "2:05", period: 5 },
-            ],
-            Fri: [
-              { classId: "cs", start: "8:10", end: "9:00", period: 1 },
-              { classId: "hist", start: "9:05", end: "9:55", period: 2 },
-              { classId: "chem", start: "10:05", end: "10:55", period: 3 },
-              { classId: "span", start: "11:05", end: "11:55", period: 4 },
-              { classId: "write", start: "1:15", end: "2:05", period: 5 },
-            ],
-          },
-        },
+        Mon: [
+          { classId: "alg2", start: "8:10", end: "9:00", period: 1 },
+          { classId: "hist", start: "9:05", end: "9:55", period: 2 },
+          { classId: "chem", start: "10:05", end: "10:55", period: 3 },
+          { classId: "span", start: "11:05", end: "11:55", period: 4 },
+          { classId: "write", start: "1:15", end: "2:05", period: 5 },
+        ],
+        Tue: [
+          { classId: "alg2", start: "8:10", end: "9:00", period: 1 },
+          { classId: "cs", start: "9:05", end: "9:55", period: 2 },
+          { classId: "chem", start: "10:05", end: "10:55", period: 3 },
+          { classId: "span", start: "11:05", end: "11:55", period: 4 },
+          { classId: "pe", start: "1:15", end: "2:05", period: 5 },
+        ],
+        Wed: [
+          { classId: "alg2", start: "8:10", end: "9:00", period: 1 },
+          { classId: "hist", start: "9:05", end: "9:55", period: 2 },
+          { classId: "chem", start: "10:05", end: "10:55", period: 3 },
+          { classId: "write", start: "11:05", end: "11:55", period: 4 },
+          { classId: "study", start: "1:15", end: "2:05", period: 5 },
+        ],
+        Thu: [
+          { classId: "alg2", start: "8:10", end: "9:00", period: 1 },
+          { classId: "cs", start: "9:05", end: "9:55", period: 2 },
+          { classId: "chem", start: "10:05", end: "10:55", period: 3 },
+          { classId: "span", start: "11:05", end: "11:55", period: 4 },
+          { classId: "club", start: "1:15", end: "2:20", period: 5 },
+        ],
+        Fri: [
+          { classId: "alg2", start: "8:10", end: "9:00", period: 1 },
+          { classId: "hist", start: "9:05", end: "9:55", period: 2 },
+          { classId: "chem", start: "10:05", end: "10:55", period: 3 },
+          { classId: "span", start: "11:05", end: "11:55", period: 4 },
+          { classId: "write", start: "1:15", end: "2:05", period: 5 },
+        ],
       };
 
       const scheduleVariants = [
         baseSchedule,
-        {
-          my: shiftSchedule(baseSchedule.my, 45),
-          classmate: {
-            name: "Riley",
-            schedule: shiftSchedule(baseSchedule.classmate.schedule, 50),
-          },
-        },
-        {
-          my: shiftSchedule(baseSchedule.my, -20),
-          classmate: {
-            name: "Devon",
-            schedule: shiftSchedule(baseSchedule.classmate.schedule, -15),
-          },
-        },
+        shiftSchedule(baseSchedule, 45),
+        shiftSchedule(baseSchedule, -20),
       ];
 
       const activeSchedule = pickRandom(scheduleVariants);
@@ -2098,7 +2498,9 @@
             classmates: ["Nova", "Cam", "Emery", "Fox"],
           },
         ],
-        schedules: activeSchedule,
+        schedules: {
+          my: activeSchedule,
+        },
         chats: {
           alg2: [
             { sender: "Mia", text: "Anyone understand the last problem set?", time: "2:12 PM" },
@@ -2131,11 +2533,25 @@
         scheduleView: "my",
         selectedClass: null,
         scheduleExtras: [],
+        scheduleSetup: {
+          active: false,
+          type: null,
+        },
         chatMode: "classes",
         chatTarget: null,
         todos: [],
         settings: {},
       };
+
+      const classmateState = {
+        username: "",
+        name: "Add a friend",
+        schedule: createEmptySchedule(),
+        classes: [],
+        loaded: false,
+      };
+
+      const classmateStorageKey = "orbitClassmate";
 
       const chatState = {
         threads: {},
@@ -2143,6 +2559,18 @@
 
       const friendsState = {
         items: [],
+      };
+
+      const friendsPageState = {
+        search: "",
+        selectedUsername: "",
+        name: "",
+        schedule: createEmptySchedule(),
+        classes: [],
+        loaded: false,
+        loading: false,
+        error: "",
+        dayFilter: "all",
       };
 
       const friendRequestsState = {
@@ -2219,6 +2647,10 @@
           title: "Chat",
           subtitle: "Classes, friends, and group threads in one place.",
         },
+        friends: {
+          title: "Friends",
+          subtitle: "Add friends, search, and check out shared schedules.",
+        },
         study: {
           title: "Study",
           subtitle: "Flashcards, practice, tests, and matching from your own cards.",
@@ -2253,6 +2685,7 @@
         profileAvatarPreview: document.getElementById("profile-avatar-preview"),
         viewProfileLink: document.getElementById("view-profile-link"),
         classmateName: document.getElementById("classmate-name"),
+        classmateSelect: document.getElementById("classmate-select"),
         scheduleGrid: document.getElementById("schedule-grid"),
         scheduleToggle: document.getElementById("schedule-toggle"),
         classDetailsGrid: document.getElementById("class-details-grid"),
@@ -2266,6 +2699,15 @@
         scheduleEnd: document.getElementById("schedule-end"),
         scheduleLocation: document.getElementById("schedule-location"),
         scheduleType: document.getElementById("schedule-type"),
+        scheduleSetup: document.getElementById("schedule-setup"),
+        scheduleSetupOptions: document.getElementById("setup-options"),
+        scheduleSetupDetails: document.getElementById("setup-details"),
+        scheduleSetupForms: document.getElementById("setup-forms"),
+        scheduleSetupNote: document.getElementById("setup-note"),
+        scheduleSetupStep: document.getElementById("setup-step"),
+        scheduleSetupError: document.getElementById("setup-error"),
+        scheduleSetupBack: document.getElementById("setup-back"),
+        scheduleSetupSave: document.getElementById("setup-save"),
         chatModeToggle: document.getElementById("chat-mode-toggle"),
         chatClassList: document.getElementById("chat-class-list"),
         chatMessages: document.getElementById("chat-messages"),
@@ -2292,6 +2734,11 @@
         friendList: document.getElementById("friend-list"),
         friendRequestsIncoming: document.getElementById("friend-requests-incoming"),
         friendRequestsOutgoing: document.getElementById("friend-requests-outgoing"),
+        friendSearch: document.getElementById("friend-search"),
+        friendScheduleGrid: document.getElementById("friend-schedule-grid"),
+        friendScheduleTitle: document.getElementById("friend-schedule-title"),
+        friendScheduleSubtitle: document.getElementById("friend-schedule-subtitle"),
+        friendScheduleDay: document.getElementById("friend-schedule-day"),
         settingsList: document.getElementById("settings-list"),
       };
 
@@ -2304,6 +2751,9 @@
         enterWorkspace: document.getElementById("study-enter-workspace"),
         continueSet: document.getElementById("study-continue"),
         backSelect: document.getElementById("study-back-select"),
+        editToggle: document.getElementById("study-edit-toggle"),
+        workspaceViewStudy: document.querySelector('[data-study-view="study"]'),
+        workspaceViewEdit: document.querySelector('[data-study-view="edit"]'),
         workspaceTitle: document.getElementById("study-workspace-title"),
         workspaceSubtitle: document.getElementById("study-workspace-subtitle"),
         setList: document.getElementById("study-set-list"),
@@ -2315,6 +2765,12 @@
         cardTerm: document.getElementById("study-card-term"),
         cardDefinition: document.getElementById("study-card-definition"),
         cardList: document.getElementById("study-card-list"),
+        importForm: document.getElementById("study-import-form"),
+        importText: document.getElementById("study-import-text"),
+        importDelimiter: document.getElementById("study-import-delimiter"),
+        importCustomWrap: document.getElementById("study-import-custom-wrap"),
+        importCustom: document.getElementById("study-import-custom"),
+        importStatus: document.getElementById("study-import-status"),
         modeToggle: document.getElementById("study-mode-toggle"),
         flashcard: document.getElementById("flashcard"),
         flashFront: document.getElementById("flashcard-front"),
@@ -2353,6 +2809,18 @@
         personal: "#9aa3b2",
       };
 
+      const classColorPalette = [
+        "#2de2a6",
+        "#4ac8ff",
+        "#ffb347",
+        "#ff7a63",
+        "#6bdcff",
+        "#3bdc8b",
+        "#ffd166",
+        "#9aa3b2",
+        "#7cf2d8",
+      ];
+
       const applyDemoProfile = () => {
         const name = activeProfile.name;
         setAvatar(elements.userAvatar, name, profileState.avatar);
@@ -2367,7 +2835,9 @@
         elements.profileGrade.textContent = activeProfile.grade;
         elements.profileSchool.textContent = activeProfile.school;
         elements.profileGoal.textContent = activeProfile.goal;
-        elements.classmateName.textContent = mockData.schedules.classmate.name;
+        if (elements.classmateName) {
+          elements.classmateName.textContent = classmateState.name || "Add a friend";
+        }
         if (elements.viewProfileLink) {
           elements.viewProfileLink.href = `/u/${encodeURIComponent(name)}`;
         }
@@ -2586,6 +3056,10 @@
         return dayOrder.every((day) => !Array.isArray(schedule[day]) || schedule[day].length === 0);
       };
 
+      const buildEmptySchedule = () => {
+        return createEmptySchedule();
+      };
+
       const buildSchedulePayload = () => {
         const schedule = {};
         dayOrder.forEach((day) => {
@@ -2599,6 +3073,13 @@
           }));
         });
         return schedule;
+      };
+
+      const shouldStartScheduleSetup = (serverData) => {
+        if (!serverData || typeof serverData !== "object") {
+          return false;
+        }
+        return isScheduleEmpty(serverData.schedule);
       };
 
       const maybeSeedServerData = async (serverData) => {
@@ -2645,10 +3126,11 @@
         const baseSchedule =
           state.scheduleView === "my"
             ? mockData.schedules.my
-            : mockData.schedules.classmate.schedule;
+            : classmateState.schedule || buildEmptySchedule();
         const map = {};
         dayOrder.forEach((day) => {
-          const entries = baseSchedule[day].map((entry) => ({
+          const dayEntries = Array.isArray(baseSchedule[day]) ? baseSchedule[day] : [];
+          const entries = dayEntries.map((entry) => ({
             id: `${day}-${entry.classId}-${entry.start}`,
             type: "class",
             ...entry,
@@ -2701,18 +3183,23 @@
           dayCard.appendChild(header);
 
           schedule[day].forEach((entry) => {
-            const classInfo = entry.type === "class" ? getClassById(entry.classId) : null;
+            const classInfo = entry.type === "class" ? getScheduleClassById(entry.classId) : null;
             const button = document.createElement("button");
             button.className = "class-item";
             const accentColor =
-              entry.type === "class" ? classInfo.color : scheduleTypeColors[entry.scheduleType] || "#4ac8ff";
+              entry.type === "class" && classInfo
+                ? classInfo.color
+                : scheduleTypeColors[entry.scheduleType] || "#4ac8ff";
             button.style.setProperty("--accent-color", accentColor);
             if (state.selectedClass && state.selectedClass.entryId === entry.id && state.selectedClass.day === day) {
               button.classList.add("active");
             }
+            const title = entry.type === "class" ? (classInfo ? classInfo.name : "Class") : entry.title;
+            const periodLabel =
+              entry.type === "class" && entry.period ? ` · Period ${entry.period}` : entry.type === "class" ? "" : "";
             button.innerHTML = `
-              <div>${entry.type === "class" ? classInfo.name : entry.title}</div>
-              <small>${formatTimeRange(entry.start, entry.end)}${entry.type === "class" ? ` · Period ${entry.period}` : " · Event"}</small>
+              <div>${title}</div>
+              <small>${formatTimeRange(entry.start, entry.end)}${entry.type === "class" ? periodLabel : " · Event"}</small>
             `;
             button.addEventListener("click", () => {
               state.selectedClass = { day, entryId: entry.id };
@@ -2739,6 +3226,535 @@
           elements.scheduleTitle.placeholder = "Switch to My schedule to add items";
         } else {
           elements.scheduleTitle.placeholder = "Activity title";
+        }
+      };
+
+      const getClassmateClassById = (id) =>
+        classmateState.classes.find((item) => item && item.id === id);
+
+      const getScheduleClassById = (id) =>
+        state.scheduleView === "classmate" ? getClassmateClassById(id) : getClassById(id);
+
+      const setScheduleView = (view) => {
+        if (!view || !elements.scheduleToggle) {
+          return;
+        }
+        if (view === "classmate" && !classmateState.username) {
+          return;
+        }
+        state.scheduleView = view;
+        elements.scheduleToggle.querySelectorAll("button").forEach((btn) => btn.classList.remove("active"));
+        const targetButton = elements.scheduleToggle.querySelector(`[data-schedule-view="${view}"]`);
+        if (targetButton) {
+          targetButton.classList.add("active");
+        }
+        state.selectedClass = null;
+        renderSchedule();
+        updateClassmateSelectVisibility();
+      };
+
+      const updateClassmateLabel = () => {
+        if (elements.classmateName) {
+          elements.classmateName.textContent = classmateState.name || "Add a friend";
+        }
+      };
+
+      const updateClassmateToggleState = () => {
+        if (!elements.scheduleToggle) {
+          return;
+        }
+        const button = elements.scheduleToggle.querySelector('[data-schedule-view="classmate"]');
+        if (!button) {
+          return;
+        }
+        const hasClassmate = !!classmateState.username;
+        button.disabled = !hasClassmate;
+        if (!hasClassmate && state.scheduleView === "classmate") {
+          setScheduleView("my");
+        }
+      };
+
+      const updateClassmateSelectVisibility = () => {
+        if (!elements.classmateSelect) {
+          return;
+        }
+        elements.classmateSelect.hidden = state.scheduleView !== "classmate" || !classmateState.username;
+      };
+
+      const getFriendOptions = () =>
+        friendsState.items
+          .map((friend) => {
+            if (!friend) {
+              return null;
+            }
+            const username = friend.username || friend.name;
+            if (!username) {
+              return null;
+            }
+            return {
+              username,
+              label: friend.name || username,
+            };
+          })
+          .filter(Boolean);
+
+      const updateClassmateSelectOptions = (options, selectedUsername) => {
+        if (!elements.classmateSelect) {
+          return;
+        }
+        elements.classmateSelect.innerHTML = "";
+        if (!options.length) {
+          const option = document.createElement("option");
+          option.value = "";
+          option.textContent = "No friends yet";
+          elements.classmateSelect.appendChild(option);
+          elements.classmateSelect.disabled = true;
+          elements.classmateSelect.hidden = true;
+          return;
+        }
+        options.forEach((optionData) => {
+          const option = document.createElement("option");
+          option.value = optionData.username;
+          option.textContent = optionData.label;
+          elements.classmateSelect.appendChild(option);
+        });
+        elements.classmateSelect.disabled = false;
+        if (selectedUsername) {
+          elements.classmateSelect.value = selectedUsername;
+        }
+      };
+
+      const resetClassmateState = () => {
+        classmateState.username = "";
+        classmateState.name = "Add a friend";
+        classmateState.schedule = createEmptySchedule();
+        classmateState.classes = [];
+        classmateState.loaded = false;
+        storage.set(classmateStorageKey, "");
+        updateClassmateLabel();
+        updateClassmateToggleState();
+        updateClassmateSelectVisibility();
+      };
+
+      const loadClassmateSchedule = async (username) => {
+        if (!username) {
+          return null;
+        }
+        try {
+          const response = await fetch(`/api/profile/${encodeURIComponent(username)}`);
+          if (response.status === 401) {
+            window.location.href = "/signin";
+            return null;
+          }
+          if (!response.ok) {
+            throw new Error("Classmate load failed");
+          }
+          const data = await response.json();
+          return {
+            username: data.username || username,
+            classes: normalizeServerClasses(data.classes) || [],
+            schedule: normalizeServerSchedule(data.schedule) || buildEmptySchedule(),
+          };
+        } catch (error) {
+          return null;
+        }
+      };
+
+      const selectClassmate = async (username, label) => {
+        if (!username) {
+          resetClassmateState();
+          return;
+        }
+        if (classmateState.username === username && classmateState.loaded) {
+          classmateState.name = label || classmateState.name;
+          updateClassmateLabel();
+          updateClassmateToggleState();
+          updateClassmateSelectVisibility();
+          return;
+        }
+        classmateState.username = username;
+        classmateState.name = label || username;
+        classmateState.schedule = createEmptySchedule();
+        classmateState.classes = [];
+        classmateState.loaded = false;
+        storage.set(classmateStorageKey, username);
+        updateClassmateLabel();
+        updateClassmateToggleState();
+        updateClassmateSelectVisibility();
+
+        const data = await loadClassmateSchedule(username);
+        if (!data) {
+          return;
+        }
+        classmateState.username = username;
+        classmateState.name = label || data.username || username;
+        classmateState.schedule = data.schedule || buildEmptySchedule();
+        classmateState.classes = data.classes || [];
+        classmateState.loaded = true;
+        updateClassmateLabel();
+        updateClassmateToggleState();
+        updateClassmateSelectVisibility();
+        if (state.scheduleView === "classmate") {
+          state.selectedClass = null;
+          renderSchedule();
+        }
+      };
+
+      const syncClassmateSelection = async () => {
+        const options = getFriendOptions();
+        if (!options.length) {
+          updateClassmateSelectOptions([]);
+          resetClassmateState();
+          return;
+        }
+        const stored = storage.get(classmateStorageKey, "");
+        const selected =
+          options.find((option) => option.username.toLowerCase() === String(stored || "").toLowerCase()) ||
+          options[0];
+        updateClassmateSelectOptions(options, selected.username);
+        await selectClassmate(selected.username, selected.label);
+      };
+
+      const scheduleSetupConfig = {
+        daily: {
+          note: "Same classes and times Monday through Friday.",
+          sections: [{ key: "daily", label: "Daily schedule", actionLabel: "Add period" }],
+          defaultRows: 5,
+        },
+        ab: {
+          note: "Alternate A and B day schedules. Orbit maps Mon, Wed, Fri to A and Tue, Thu to B.",
+          sections: [
+            { key: "A", label: "A day", actionLabel: "Add period" },
+            { key: "B", label: "B day", actionLabel: "Add period" },
+          ],
+          defaultRows: 4,
+        },
+        block: {
+          note: "Longer class blocks with fewer classes per day. Fill in each weekday with its blocks.",
+          sections: dayOrder.map((day) => ({ key: day, label: `${day} blocks`, actionLabel: "Add block" })),
+          defaultRows: 4,
+        },
+      };
+
+      const resetScheduleSetup = () => {
+        state.scheduleSetup.type = null;
+        if (elements.scheduleSetupOptions) {
+          elements.scheduleSetupOptions.querySelectorAll("button").forEach((button) => {
+            button.classList.remove("active");
+          });
+        }
+        if (elements.scheduleSetupDetails) {
+          elements.scheduleSetupDetails.hidden = true;
+        }
+        if (elements.scheduleSetupForms) {
+          elements.scheduleSetupForms.innerHTML = "";
+        }
+        if (elements.scheduleSetupStep) {
+          elements.scheduleSetupStep.textContent = "Step 1 of 2";
+        }
+        if (elements.scheduleSetupBack) {
+          elements.scheduleSetupBack.hidden = true;
+        }
+        if (elements.scheduleSetupSave) {
+          elements.scheduleSetupSave.disabled = true;
+        }
+        if (elements.scheduleSetupError) {
+          elements.scheduleSetupError.textContent = "";
+        }
+      };
+
+      const openScheduleSetup = () => {
+        if (!elements.scheduleSetup) {
+          return;
+        }
+        state.scheduleSetup.active = true;
+        setPage("schedule");
+        resetScheduleSetup();
+        elements.scheduleSetup.classList.add("active");
+        elements.scheduleSetup.setAttribute("aria-hidden", "false");
+      };
+
+      const closeScheduleSetup = () => {
+        if (!elements.scheduleSetup) {
+          return;
+        }
+        state.scheduleSetup.active = false;
+        elements.scheduleSetup.classList.remove("active");
+        elements.scheduleSetup.setAttribute("aria-hidden", "true");
+      };
+
+      const addSetupRow = (container) => {
+        const row = document.createElement("div");
+        row.className = "setup-row";
+        row.innerHTML = `
+          <input type="text" placeholder="Class name" data-field="name" />
+          <input type="time" data-field="start" />
+          <input type="time" data-field="end" />
+          <input type="text" placeholder="Room (optional)" data-field="location" />
+          <button class="ghost-button" type="button" data-remove-row>Remove</button>
+        `;
+        const removeButton = row.querySelector("[data-remove-row]");
+        removeButton.addEventListener("click", () => {
+          row.remove();
+        });
+        container.appendChild(row);
+      };
+
+      const buildSetupSection = (section, defaultRows) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "setup-day";
+        wrapper.dataset.setupDay = section.key;
+        wrapper.innerHTML = `
+          <h4>${section.label}</h4>
+          <div class="setup-rows" data-setup-rows></div>
+        `;
+        const rowsContainer = wrapper.querySelector("[data-setup-rows]");
+        for (let i = 0; i < defaultRows; i += 1) {
+          addSetupRow(rowsContainer);
+        }
+        const addButton = document.createElement("button");
+        addButton.type = "button";
+        addButton.className = "ghost-button setup-add";
+        addButton.textContent = section.actionLabel;
+        addButton.addEventListener("click", () => addSetupRow(rowsContainer));
+        wrapper.appendChild(addButton);
+        return wrapper;
+      };
+
+      const renderScheduleSetupForm = (type) => {
+        const config = scheduleSetupConfig[type];
+        if (!config || !elements.scheduleSetupForms) {
+          return;
+        }
+        elements.scheduleSetupForms.innerHTML = "";
+        if (elements.scheduleSetupNote) {
+          elements.scheduleSetupNote.textContent = config.note;
+        }
+        config.sections.forEach((section) => {
+          elements.scheduleSetupForms.appendChild(buildSetupSection(section, config.defaultRows));
+        });
+      };
+
+      const selectScheduleSetupType = (type) => {
+        if (!scheduleSetupConfig[type]) {
+          return;
+        }
+        state.scheduleSetup.type = type;
+        if (elements.scheduleSetupOptions) {
+          elements.scheduleSetupOptions.querySelectorAll("button").forEach((button) => {
+            button.classList.toggle("active", button.dataset.setupType === type);
+          });
+        }
+        if (elements.scheduleSetupDetails) {
+          elements.scheduleSetupDetails.hidden = false;
+        }
+        if (elements.scheduleSetupSave) {
+          elements.scheduleSetupSave.disabled = false;
+        }
+        if (elements.scheduleSetupBack) {
+          elements.scheduleSetupBack.hidden = false;
+        }
+        if (elements.scheduleSetupStep) {
+          elements.scheduleSetupStep.textContent = "Step 2 of 2";
+        }
+        if (elements.scheduleSetupError) {
+          elements.scheduleSetupError.textContent = "";
+        }
+        renderScheduleSetupForm(type);
+      };
+
+      const collectSetupEntries = (rowsContainer) => {
+        const entries = [];
+        let hasError = false;
+        if (!rowsContainer) {
+          return { entries, hasError: true };
+        }
+        rowsContainer.querySelectorAll(".setup-row").forEach((row) => {
+          const name = row.querySelector('[data-field="name"]').value.trim();
+          const start = row.querySelector('[data-field="start"]').value;
+          const end = row.querySelector('[data-field="end"]').value;
+          const location = row.querySelector('[data-field="location"]').value.trim();
+          row.classList.remove("error");
+          if (!name && !start && !end && !location) {
+            return;
+          }
+          if (!name || !start || !end) {
+            hasError = true;
+            row.classList.add("error");
+            return;
+          }
+          if (parseTimeToMinutes(start) >= parseTimeToMinutes(end)) {
+            hasError = true;
+            row.classList.add("error");
+            return;
+          }
+          entries.push({ name, start, end, location });
+        });
+        return { entries, hasError };
+      };
+
+      const buildClassId = (name, usedIds) => {
+        const base = name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+        let id = base || `class-${usedIds.size + 1}`;
+        let suffix = 1;
+        while (usedIds.has(id)) {
+          suffix += 1;
+          id = `${base || "class"}-${suffix}`;
+        }
+        usedIds.add(id);
+        return id;
+      };
+
+      const buildScheduleFromSetup = (type, sectionData) => {
+        const classMap = new Map();
+        const usedIds = new Set();
+        const ensureClass = (name, location) => {
+          const key = name.trim().toLowerCase();
+          let classInfo = classMap.get(key);
+          if (!classInfo) {
+            const index = classMap.size;
+            classInfo = {
+              id: buildClassId(name, usedIds),
+              name,
+              room: location || "TBD",
+              color: classColorPalette[index % classColorPalette.length],
+              classmates: buildClassmates(index),
+            };
+            classMap.set(key, classInfo);
+          } else if (location && classInfo.room === "TBD") {
+            classInfo.room = location;
+          }
+          return classInfo.id;
+        };
+
+        const buildDayEntries = (entries) => {
+          const dayEntries = entries.map((entry) => ({
+            classId: ensureClass(entry.name, entry.location),
+            start: entry.start,
+            end: entry.end,
+            location: entry.location || "",
+          }));
+          dayEntries.sort((a, b) => parseTimeToMinutes(a.start) - parseTimeToMinutes(b.start));
+          dayEntries.forEach((entry, index) => {
+            entry.period = index + 1;
+          });
+          return dayEntries;
+        };
+
+        const schedule = buildEmptySchedule();
+        if (type === "daily") {
+          const template = sectionData.daily || [];
+          dayOrder.forEach((day) => {
+            schedule[day] = buildDayEntries(template);
+          });
+        } else if (type === "ab") {
+          const aDay = sectionData.A || [];
+          const bDay = sectionData.B || [];
+          const pattern = { Mon: "A", Tue: "B", Wed: "A", Thu: "B", Fri: "A" };
+          dayOrder.forEach((day) => {
+            const template = pattern[day] === "A" ? aDay : bDay;
+            schedule[day] = buildDayEntries(template);
+          });
+        } else {
+          dayOrder.forEach((day) => {
+            schedule[day] = buildDayEntries(sectionData[day] || []);
+          });
+        }
+
+        return {
+          classes: Array.from(classMap.values()),
+          schedule,
+        };
+      };
+
+      const saveScheduleToServer = async () => {
+        try {
+          const payload = {
+            classes: mockData.classes,
+            schedule: buildSchedulePayload(),
+          };
+          const response = await fetch("/api/data", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (response.status === 401) {
+            window.location.href = "/signin";
+            return false;
+          }
+          return response.ok;
+        } catch (error) {
+          return false;
+        }
+      };
+
+      const saveScheduleSetup = async () => {
+        if (!state.scheduleSetup.type || !elements.scheduleSetupForms) {
+          return;
+        }
+        if (elements.scheduleSetupError) {
+          elements.scheduleSetupError.textContent = "";
+        }
+        const sectionData = {};
+        let hasError = false;
+        elements.scheduleSetupForms.querySelectorAll(".setup-day").forEach((section) => {
+          const rowsContainer = section.querySelector("[data-setup-rows]");
+          const { entries, hasError: rowsError } = collectSetupEntries(rowsContainer);
+          if (rowsError || !entries.length) {
+            hasError = true;
+          }
+          sectionData[section.dataset.setupDay] = entries;
+        });
+        if (hasError) {
+          if (elements.scheduleSetupError) {
+            elements.scheduleSetupError.textContent =
+              "Add at least one class with a start and end time in each section.";
+          }
+          return;
+        }
+        const built = buildScheduleFromSetup(state.scheduleSetup.type, sectionData);
+        if (!built.classes.length) {
+          if (elements.scheduleSetupError) {
+            elements.scheduleSetupError.textContent = "Add at least one class to continue.";
+          }
+          return;
+        }
+        mockData.classes = built.classes;
+        mockData.schedules.my = built.schedule;
+        const saved = await saveScheduleToServer();
+        if (!saved) {
+          if (elements.scheduleSetupError) {
+            elements.scheduleSetupError.textContent =
+              "Could not save schedule. Check your connection and try again.";
+          }
+          return;
+        }
+        closeScheduleSetup();
+        state.scheduleView = "my";
+        state.selectedClass = null;
+        renderTodoSelectors();
+        renderTodoList();
+        renderSchedule();
+        renderChatList();
+        renderChatThread();
+      };
+
+      const initScheduleSetup = () => {
+        if (!elements.scheduleSetup || !elements.scheduleSetupOptions) {
+          return;
+        }
+        resetScheduleSetup();
+        elements.scheduleSetupOptions.querySelectorAll("button").forEach((button) => {
+          button.addEventListener("click", () => selectScheduleSetupType(button.dataset.setupType));
+        });
+        if (elements.scheduleSetupBack) {
+          elements.scheduleSetupBack.addEventListener("click", resetScheduleSetup);
+        }
+        if (elements.scheduleSetupSave) {
+          elements.scheduleSetupSave.addEventListener("click", saveScheduleSetup);
         }
       };
 
@@ -2790,13 +3806,14 @@
           elements.countdownStatus.textContent = "No upcoming classes today.";
           elements.countdownTime.textContent = "--:--:--";
           elements.countdownMeta.textContent = "";
+          elements.countdownTime.classList.remove("tick");
           return;
         }
         const now = new Date();
         const targetTime = nextEvent.type === "current" ? nextEvent.end : nextEvent.start;
         const timeLeft = targetTime - now;
         const entry = nextEvent.entry;
-        const classInfo = entry.type === "class" ? getClassById(entry.classId) : null;
+        const classInfo = entry.type === "class" ? getScheduleClassById(entry.classId) : null;
         const label =
           nextEvent.type === "current"
             ? entry.type === "class"
@@ -2811,12 +3828,16 @@
           hour: "numeric",
           minute: "2-digit",
         });
+        const entryName = entry.type === "class" ? (classInfo ? classInfo.name : "Class") : entry.title;
         elements.countdownMeta.innerHTML = `
           <span class="tag">${nextEvent.dayName}</span>
           <span>Now ${currentTime}</span>
-          <span>${entry.type === "class" ? classInfo.name : entry.title}</span>
+          <span>${entryName}</span>
           <span>${formatTimeRange(entry.start, entry.end)}</span>
         `;
+        elements.countdownTime.classList.remove("tick");
+        void elements.countdownTime.offsetWidth;
+        elements.countdownTime.classList.add("tick");
       };
 
       const renderClassDetails = () => {
@@ -2832,26 +3853,41 @@
           return;
         }
         if (entry.type === "class") {
-          const classInfo = getClassById(entry.classId);
-          const classmates = classInfo.classmates.join(", ");
+          const classInfo = getScheduleClassById(entry.classId);
+          if (!classInfo) {
+            elements.classDetailsGrid.innerHTML = `
+              <div><span>Class</span><strong>Unknown class</strong></div>
+              <div><span>Day</span><strong>${day}</strong></div>
+              <div><span>Time</span><strong>${formatTimeRange(entry.start, entry.end)}</strong></div>
+            `;
+            return;
+          }
+          const classmates = Array.isArray(classInfo.classmates) ? classInfo.classmates.join(", ") : "";
+          const isMySchedule = state.scheduleView === "my";
           elements.classDetailsGrid.innerHTML = `
             <div><span>Class</span><strong>${classInfo.name}</strong></div>
             <div><span>Room</span><strong>${classInfo.room}</strong></div>
             <div><span>Day</span><strong>${day}</strong></div>
             <div><span>Time</span><strong>${formatTimeRange(entry.start, entry.end)}</strong></div>
             <div><span>Period</span><strong>${entry.period}</strong></div>
-            <div><span>Classmates</span><strong>${classmates}</strong></div>
-            <div><span>Chat</span><strong><button class="ghost-button" type="button" data-open-chat="${classInfo.id}">Open class chat</button></strong></div>
+            <div><span>Classmates</span><strong>${classmates || "Not shared"}</strong></div>
+            ${
+              isMySchedule
+                ? `<div><span>Chat</span><strong><button class="ghost-button" type="button" data-open-chat="${classInfo.id}">Open class chat</button></strong></div>`
+                : `<div><span>Student</span><strong>${classmateState.name || "Friend"}</strong></div>`
+            }
           `;
-          const chatButton = elements.classDetailsGrid.querySelector("[data-open-chat]");
-          if (chatButton) {
-            chatButton.addEventListener("click", () => {
-              state.chatMode = "classes";
-              state.chatTarget = { type: "class", id: classInfo.id };
-              setPage("chat");
-              renderChatList();
-              renderChatThread();
-            });
+          if (isMySchedule) {
+            const chatButton = elements.classDetailsGrid.querySelector("[data-open-chat]");
+            if (chatButton) {
+              chatButton.addEventListener("click", () => {
+                state.chatMode = "classes";
+                state.chatTarget = { type: "class", id: classInfo.id };
+                setPage("chat");
+                renderChatList();
+                renderChatThread();
+              });
+            }
           }
         } else {
           elements.classDetailsGrid.innerHTML = `
@@ -3063,7 +4099,7 @@
             state.chatMode === "classes"
               ? "No classes yet. Add one in Schedule."
               : state.chatMode === "friends"
-                ? "No friends yet. Add one in Profile."
+                ? "No friends yet. Add one in Friends."
                 : "No group chats yet. Create one to get started.";
           renderStudyEmpty(elements.chatClassList, emptyMessage);
           state.chatTarget = null;
@@ -3184,6 +4220,7 @@
       const studyState = {
         stage: "select",
         mode: "flashcards",
+        workspaceView: "study",
         selectedSetId: null,
         flashcards: {
           index: 0,
@@ -3223,6 +4260,14 @@
           elapsedMs: 0,
           setId: null,
         },
+      };
+
+      const studyImportDelimiters = {
+        tab: "\t",
+        semicolon: ";",
+        comma: ",",
+        pipe: "|",
+        dash: " - ",
       };
 
       const makeStudyId = (prefix) => {
@@ -3331,6 +4376,20 @@
         }
       };
 
+      const setStudyWorkspaceView = (view) => {
+        studyState.workspaceView = view;
+        if (studyElements.workspaceViewStudy) {
+          studyElements.workspaceViewStudy.classList.toggle("active", view === "study");
+        }
+        if (studyElements.workspaceViewEdit) {
+          studyElements.workspaceViewEdit.classList.toggle("active", view === "edit");
+        }
+        if (studyElements.editToggle) {
+          studyElements.editToggle.textContent = view === "edit" ? "Back to study" : "Edit set";
+        }
+        updateStudyImportFormState();
+      };
+
       const renderStudyWorkspaceHeader = () => {
         if (!studyElements.workspaceTitle || !studyElements.workspaceSubtitle) {
           return;
@@ -3415,6 +4474,99 @@
         renderStudySelectionActions();
       };
 
+      const setStudyImportStatus = (message, tone) => {
+        if (!studyElements.importStatus) {
+          return;
+        }
+        studyElements.importStatus.textContent = message || "";
+        studyElements.importStatus.classList.toggle("success", tone === "success");
+        studyElements.importStatus.classList.toggle("error", tone === "error");
+      };
+
+      const updateStudyImportCustomState = () => {
+        if (!studyElements.importCustomWrap || !studyElements.importDelimiter) {
+          return;
+        }
+        const isCustom = studyElements.importDelimiter.value === "custom";
+        studyElements.importCustomWrap.hidden = !isCustom;
+        if (studyElements.importCustom) {
+          studyElements.importCustom.disabled = !isCustom;
+        }
+      };
+
+      const getStudyImportDelimiter = () => {
+        if (!studyElements.importDelimiter) {
+          return { delimiter: "", fallback: "" };
+        }
+        const value = studyElements.importDelimiter.value;
+        if (value === "custom") {
+          const customValue = studyElements.importCustom ? studyElements.importCustom.value.trim() : "";
+          const customDelimiter = customValue === "\\t" ? "\t" : customValue;
+          return { delimiter: customDelimiter, fallback: "" };
+        }
+        if (value === "dash") {
+          return { delimiter: studyImportDelimiters.dash, fallback: "-" };
+        }
+        const delimiter = studyImportDelimiters[value] || "";
+        return { delimiter, fallback: "" };
+      };
+
+      const splitImportLine = (line, delimiter, fallbackDelimiter) => {
+        if (!delimiter) {
+          return null;
+        }
+        let usedDelimiter = delimiter;
+        let index = line.indexOf(usedDelimiter);
+        if (index === -1 && fallbackDelimiter) {
+          usedDelimiter = fallbackDelimiter;
+          index = line.indexOf(usedDelimiter);
+        }
+        if (index === -1) {
+          return null;
+        }
+        const term = line.slice(0, index).trim();
+        const definition = line.slice(index + usedDelimiter.length).trim();
+        if (!term || !definition) {
+          return null;
+        }
+        return { term, definition };
+      };
+
+      const parseStudyImportText = (rawText, delimiter, fallbackDelimiter) => {
+        const lines = rawText.split(/\r?\n/);
+        const cards = [];
+        let skipped = 0;
+        let total = 0;
+        lines.forEach((line) => {
+          if (!line || !line.trim()) {
+            return;
+          }
+          total += 1;
+          const parsed = splitImportLine(line, delimiter, fallbackDelimiter);
+          if (!parsed) {
+            skipped += 1;
+            return;
+          }
+          cards.push(parsed);
+        });
+        return { cards, skipped, total };
+      };
+
+      const updateStudyImportFormState = () => {
+        if (!studyElements.importForm) {
+          return;
+        }
+        const hasSet = !!studyState.selectedSetId;
+        studyElements.importForm.querySelectorAll("textarea, input, select, button").forEach((field) => {
+          field.disabled = !hasSet;
+        });
+        if (!hasSet) {
+          setStudyImportStatus("Select a set to import cards.", "");
+        } else if (studyElements.importStatus?.textContent === "Select a set to import cards.") {
+          setStudyImportStatus("", "");
+        }
+      };
+
       const resetStudyModes = () => {
         studyState.flashcards.index = 0;
         studyState.flashcards.seen = new Set();
@@ -3437,7 +4589,10 @@
       const setActiveSet = (setId) => {
         studyState.selectedSetId = setId;
         setStudyStage("workspace");
+        studyState.mode = "flashcards";
+        setStudyWorkspaceView("study");
         resetStudyModes();
+        setStudyImportStatus("", "");
         saveStudyData();
         renderStudySets();
         renderStudyCards();
@@ -3531,6 +4686,7 @@
         studyElements.cardForm.querySelectorAll("input, textarea, button").forEach((field) => {
           field.disabled = !hasSet;
         });
+        updateStudyImportFormState();
         if (!hasSet) {
           renderStudyEmpty(studyElements.cardList, "Create or select a set to add cards.");
           renderStudySelectLists();
@@ -4211,6 +5367,7 @@
         if (studyElements.enterWorkspace) {
           studyElements.enterWorkspace.addEventListener("click", () => {
             setStudyStage("workspace");
+            setStudyWorkspaceView("edit");
             studyElements.setTitle?.focus();
           });
         }
@@ -4221,12 +5378,23 @@
           });
         }
 
+        if (studyElements.editToggle) {
+          studyElements.editToggle.addEventListener("click", () => {
+            const nextView = studyState.workspaceView === "study" ? "edit" : "study";
+            setStudyWorkspaceView(nextView);
+            if (nextView === "study") {
+              renderStudyMode();
+            }
+          });
+        }
+
         if (studyElements.continueSet) {
           studyElements.continueSet.addEventListener("click", () => {
             if (studyState.selectedSetId) {
               setActiveSet(studyState.selectedSetId);
             } else {
               setStudyStage("workspace");
+              setStudyWorkspaceView("edit");
             }
           });
         }
@@ -4281,6 +5449,58 @@
           renderStudyMode();
           startMatchGame();
         });
+
+        if (studyElements.importDelimiter) {
+          studyElements.importDelimiter.addEventListener("change", () => {
+            updateStudyImportCustomState();
+            setStudyImportStatus("", "");
+          });
+          updateStudyImportCustomState();
+        }
+
+        if (studyElements.importForm) {
+          studyElements.importForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            if (!studyState.selectedSetId) {
+              setStudyImportStatus("Select a set to import cards.", "error");
+              return;
+            }
+            const rawText = studyElements.importText ? studyElements.importText.value.trim() : "";
+            if (!rawText) {
+              setStudyImportStatus("Paste your terms and definitions first.", "error");
+              return;
+            }
+            const { delimiter, fallback } = getStudyImportDelimiter();
+            if (!delimiter) {
+              setStudyImportStatus("Choose a delimiter to split term and definition.", "error");
+              return;
+            }
+            const { cards, skipped, total } = parseStudyImportText(rawText, delimiter, fallback);
+            if (!cards.length) {
+              setStudyImportStatus("No valid cards found. Check the delimiter.", "error");
+              return;
+            }
+            const newCards = cards.map((entry) => ({
+              id: makeStudyId("card"),
+              setId: studyState.selectedSetId,
+              term: entry.term,
+              definition: entry.definition,
+              starred: false,
+            }));
+            newCards.forEach((card) => ensureProgress(card.id));
+            studyData.cards = [...newCards, ...studyData.cards];
+            saveStudyData();
+            if (studyElements.importText) {
+              studyElements.importText.value = "";
+            }
+            const cardLabel = newCards.length === 1 ? "card" : "cards";
+            const skippedLabel = skipped ? ` Skipped ${skipped} of ${total} lines.` : "";
+            setStudyImportStatus(`Imported ${newCards.length} ${cardLabel}.${skippedLabel}`, "success");
+            renderStudyCards();
+            renderStudyMode();
+            startMatchGame();
+          });
+        }
 
         studyElements.modeToggle.querySelectorAll("button").forEach((button) => {
           button.addEventListener("click", () => {
@@ -4377,18 +5597,37 @@
         renderSchedule();
       };
 
-      const loadTodos = () => {
+      const loadTodos = (useSeed = true) => {
         const stored = storage.get("orbitTodos", []);
         if (stored.length) {
           state.todos = stored;
         } else {
-          state.todos = mockData.todosSeed;
+          state.todos = [];
           storage.set("orbitTodos", state.todos);
         }
+        pruneTodos();
       };
 
       const saveTodos = () => {
         storage.set("orbitTodos", state.todos);
+      };
+
+      const isPastDueDate = (dueDate) => {
+        if (!dueDate) {
+          return false;
+        }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const due = new Date(`${dueDate}T00:00:00`);
+        return due < today;
+      };
+
+      const pruneTodos = () => {
+        const before = state.todos.length;
+        state.todos = state.todos.filter((todo) => !(todo.completed && isPastDueDate(todo.dueDate)));
+        if (state.todos.length !== before) {
+          saveTodos();
+        }
       };
 
       const getDueStatus = (dueDate, completed) => {
@@ -4424,6 +5663,7 @@
       };
 
       const renderTodoList = () => {
+        pruneTodos();
         const classFilter = elements.filterClass.value;
         const statusFilter = elements.filterStatus.value;
         const dueFilter = elements.filterDue.value;
@@ -4458,13 +5698,14 @@
 
         filtered.forEach((todo) => {
           const classInfo = getClassById(todo.classId);
+          const className = classInfo ? classInfo.name : "Unknown class";
           const dueStatus = getDueStatus(todo.dueDate, todo.completed);
           const item = document.createElement("div");
           item.className = `todo-item ${todo.completed ? "completed" : ""} ${dueStatus}`;
           item.innerHTML = `
             <strong>${todo.title}</strong>
             <div class="todo-meta">
-              <span>${classInfo.name}</span>
+              <span>${className}</span>
               <span>${formatDate(todo.dueDate)}</span>
             </div>
             <div>${todo.notes ? todo.notes : ""}</div>
@@ -4491,9 +5732,13 @@
 
       const addTodo = (event) => {
         event.preventDefault();
+        const classId = elements.todoClass.value;
+        if (!classId) {
+          return;
+        }
         const newTodo = {
           id: `todo-${Date.now()}`,
-          classId: elements.todoClass.value,
+          classId,
           title: elements.todoTitle.value.trim(),
           dueDate: elements.todoDue.value,
           notes: elements.todoNotes.value.trim(),
@@ -4507,12 +5752,23 @@
 
       const renderTodoSelectors = () => {
         const classOptions = mockData.classes.map((item) => ({ value: item.id, label: item.name }));
-        elements.todoClass.innerHTML = classOptions
-          .map((item) => `<option value="${item.value}">${item.label}</option>`)
-          .join("");
-        elements.filterClass.innerHTML =
-          '<option value="all">All classes</option>' +
-          classOptions.map((item) => `<option value="${item.value}">${item.label}</option>`).join("");
+        const hasClasses = classOptions.length > 0;
+        if (!hasClasses) {
+          elements.todoClass.innerHTML = '<option value="">Add classes in Schedule first</option>';
+          elements.filterClass.innerHTML = '<option value="all">All classes</option>';
+        } else {
+          elements.todoClass.innerHTML = classOptions
+            .map((item) => `<option value="${item.value}">${item.label}</option>`)
+            .join("");
+          elements.filterClass.innerHTML =
+            '<option value="all">All classes</option>' +
+            classOptions.map((item) => `<option value="${item.value}">${item.label}</option>`).join("");
+        }
+        if (elements.todoForm) {
+          elements.todoForm.querySelectorAll("input, select, button, textarea").forEach((field) => {
+            field.disabled = !hasClasses;
+          });
+        }
       };
 
       const loadSettings = async () => {
@@ -4549,30 +5805,237 @@
         });
       };
 
+      const getFriendScheduleClassById = (id) =>
+        friendsPageState.classes.find((item) => item && item.id === id);
+
+      const getFriendSearchQuery = () => {
+        if (!elements.friendSearch) {
+          return "";
+        }
+        return elements.friendSearch.value.trim().toLowerCase();
+      };
+
+      const filterFriendsByQuery = (query) =>
+        friendsState.items.filter((friend) => {
+          if (!friend) {
+            return false;
+          }
+          if (!query) {
+            return true;
+          }
+          const name = String(friend.name || "").toLowerCase();
+          const username = String(friend.username || "").toLowerCase();
+          return name.includes(query) || username.includes(query);
+        });
+
+      const resetFriendScheduleState = () => {
+        friendsPageState.selectedUsername = "";
+        friendsPageState.name = "";
+        friendsPageState.schedule = createEmptySchedule();
+        friendsPageState.classes = [];
+        friendsPageState.loaded = false;
+        friendsPageState.loading = false;
+        friendsPageState.error = "";
+      };
+
+      const renderFriendSchedule = () => {
+        if (!elements.friendScheduleGrid) {
+          return;
+        }
+        const dayFilter = elements.friendScheduleDay ? elements.friendScheduleDay.value : "all";
+        friendsPageState.dayFilter = dayFilter;
+        elements.friendScheduleGrid.innerHTML = "";
+        if (elements.friendScheduleDay) {
+          elements.friendScheduleDay.disabled = !friendsPageState.selectedUsername;
+        }
+
+        if (!friendsPageState.selectedUsername) {
+          renderStudyEmpty(elements.friendScheduleGrid, "Select a friend to view their schedule.");
+          if (elements.friendScheduleTitle) {
+            elements.friendScheduleTitle.textContent = "Friend schedule";
+          }
+          if (elements.friendScheduleSubtitle) {
+            elements.friendScheduleSubtitle.textContent = "Select a friend to view their week.";
+          }
+          return;
+        }
+
+        if (friendsPageState.loading) {
+          renderStudyEmpty(elements.friendScheduleGrid, "Loading schedule...");
+          if (elements.friendScheduleTitle) {
+            elements.friendScheduleTitle.textContent = `Schedule for ${friendsPageState.name || "friend"}`;
+          }
+          if (elements.friendScheduleSubtitle) {
+            elements.friendScheduleSubtitle.textContent = "Fetching the latest schedule.";
+          }
+          return;
+        }
+
+        if (friendsPageState.error) {
+          renderStudyEmpty(elements.friendScheduleGrid, friendsPageState.error);
+          if (elements.friendScheduleTitle) {
+            elements.friendScheduleTitle.textContent = `Schedule for ${friendsPageState.name || "friend"}`;
+          }
+          if (elements.friendScheduleSubtitle) {
+            elements.friendScheduleSubtitle.textContent = "Schedule unavailable.";
+          }
+          return;
+        }
+
+        const schedule = friendsPageState.schedule || createEmptySchedule();
+        const daysToShow =
+          dayFilter === "all" ? dayOrder : dayOrder.includes(dayFilter) ? [dayFilter] : dayOrder;
+        const hasEntries = daysToShow.some((day) => (schedule[day] || []).length);
+
+        if (elements.friendScheduleTitle) {
+          elements.friendScheduleTitle.textContent = `Schedule for ${friendsPageState.name || "friend"}`;
+        }
+        if (elements.friendScheduleSubtitle) {
+          elements.friendScheduleSubtitle.textContent = hasEntries
+            ? "Shared schedule details."
+            : "No classes shared yet.";
+        }
+
+        daysToShow.forEach((day) => {
+          const dayCard = document.createElement("div");
+          dayCard.className = "schedule-day";
+          const header = document.createElement("h4");
+          header.textContent = day;
+          dayCard.appendChild(header);
+
+          const entries = [...(schedule[day] || [])].sort(
+            (a, b) => parseTimeToMinutes(a.start) - parseTimeToMinutes(b.start)
+          );
+          if (!entries.length) {
+            const empty = document.createElement("div");
+            empty.className = "muted";
+            empty.textContent = "No classes";
+            dayCard.appendChild(empty);
+          } else {
+            entries.forEach((entry) => {
+              const entryType = entry.type || "class";
+              const classInfo = entryType === "class" ? getFriendScheduleClassById(entry.classId) : null;
+              const button = document.createElement("button");
+              button.type = "button";
+              button.className = "class-item";
+              const accentColor =
+                entryType === "class" && classInfo
+                  ? classInfo.color
+                  : scheduleTypeColors[entry.scheduleType] || "#4ac8ff";
+              button.style.setProperty("--accent-color", accentColor);
+              const title = entryType === "class" ? (classInfo ? classInfo.name : "Class") : entry.title || "Event";
+              const periodLabel =
+                entryType === "class" && entry.period ? ` · Period ${entry.period}` : entryType === "class" ? "" : "";
+              button.innerHTML = `
+                <div>${title}</div>
+                <small>${formatTimeRange(entry.start, entry.end)}${entryType === "class" ? periodLabel : " · Event"}</small>
+              `;
+              dayCard.appendChild(button);
+            });
+          }
+
+          elements.friendScheduleGrid.appendChild(dayCard);
+        });
+      };
+
+      const selectFriendForSchedule = async (username, label) => {
+        if (!username) {
+          resetFriendScheduleState();
+          renderFriendSchedule();
+          renderFriends();
+          return;
+        }
+        if (friendsPageState.selectedUsername === username && friendsPageState.loaded) {
+          friendsPageState.name = label || friendsPageState.name;
+          friendsPageState.error = "";
+          renderFriendSchedule();
+          renderFriends();
+          return;
+        }
+        friendsPageState.selectedUsername = username;
+        friendsPageState.name = label || username;
+        friendsPageState.schedule = createEmptySchedule();
+        friendsPageState.classes = [];
+        friendsPageState.loaded = false;
+        friendsPageState.loading = true;
+        friendsPageState.error = "";
+        renderFriendSchedule();
+        renderFriends();
+
+        const data = await loadClassmateSchedule(username);
+        friendsPageState.loading = false;
+        if (!data) {
+          friendsPageState.loaded = true;
+          friendsPageState.error = "Schedule not shared or unavailable.";
+          renderFriendSchedule();
+          renderFriends();
+          return;
+        }
+        friendsPageState.schedule = data.schedule || createEmptySchedule();
+        friendsPageState.classes = data.classes || [];
+        friendsPageState.loaded = true;
+        friendsPageState.error = "";
+        renderFriendSchedule();
+        renderFriends();
+      };
+
+      const syncFriendsScheduleSelection = async () => {
+        if (!elements.friendScheduleGrid) {
+          return;
+        }
+        const options = getFriendOptions();
+        if (!options.length) {
+          resetFriendScheduleState();
+          renderFriendSchedule();
+          return;
+        }
+        const selected =
+          options.find(
+            (option) =>
+              option.username.toLowerCase() === String(friendsPageState.selectedUsername || "").toLowerCase()
+          ) || options[0];
+        await selectFriendForSchedule(selected.username, selected.label);
+      };
+
       const renderFriends = () => {
         if (!elements.friendList) {
           return;
         }
         elements.friendList.innerHTML = "";
-        if (!friendsState.items.length) {
-          renderStudyEmpty(elements.friendList, "No friends yet. Add one to start chatting.");
+        const query = getFriendSearchQuery();
+        friendsPageState.search = query;
+        const filtered = filterFriendsByQuery(query);
+        if (!filtered.length) {
+          renderStudyEmpty(
+            elements.friendList,
+            query ? "No friends match that search." : "No friends yet. Add one to start chatting."
+          );
           return;
         }
-        friendsState.items.forEach((friend) => {
+        filtered.forEach((friend) => {
           const item = document.createElement("div");
-          item.className = "friend-item";
+          const username = friend.username || friend.name || "";
+          item.className = `friend-item${friendsPageState.selectedUsername === username ? " active" : ""}`;
           const displayName = friend.name || friend.username || "Unknown";
           const name = document.createElement("a");
-          const username = friend.username || friend.name || "";
           name.href = `/u/${encodeURIComponent(username)}`;
           name.className = "link-button";
           name.textContent = displayName;
+          const actions = document.createElement("div");
+          actions.className = "friend-item-actions";
+          const viewButton = document.createElement("button");
+          viewButton.type = "button";
+          viewButton.textContent = friendsPageState.selectedUsername === username ? "Viewing" : "View";
+          viewButton.disabled = friendsPageState.selectedUsername === username;
+          viewButton.addEventListener("click", () => selectFriendForSchedule(username, displayName));
           const removeButton = document.createElement("button");
           removeButton.type = "button";
           removeButton.textContent = "Remove";
           removeButton.addEventListener("click", () => removeFriend(friend.id));
           item.appendChild(name);
-          item.appendChild(removeButton);
+          actions.appendChild(viewButton);
+          actions.appendChild(removeButton);
+          item.appendChild(actions);
           elements.friendList.appendChild(item);
         });
       };
@@ -4653,7 +6116,9 @@
         } catch (error) {
           friendsState.items = [];
         }
+        await syncClassmateSelection();
         renderFriends();
+        await syncFriendsScheduleSelection();
         renderChatList();
         renderChatThread();
       };
@@ -4883,6 +6348,7 @@
 
       const removeFriend = async (id) => {
         try {
+          const removedFriend = friendsState.items.find((friend) => friend.id === id);
           const response = await fetch("/api/friends/remove", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -4896,7 +6362,14 @@
             throw new Error("Friend remove failed");
           }
           friendsState.items = friendsState.items.filter((friend) => friend.id !== id);
+          const removedUsername = removedFriend ? removedFriend.username || removedFriend.name || "" : "";
+          if (removedUsername && removedUsername === friendsPageState.selectedUsername) {
+            resetFriendScheduleState();
+            renderFriendSchedule();
+          }
+          await syncClassmateSelection();
           renderFriends();
+          await syncFriendsScheduleSelection();
           renderChatList();
           renderChatThread();
         } catch (error) {
@@ -4915,13 +6388,16 @@
       const initSchedule = () => {
         elements.scheduleToggle.querySelectorAll("button").forEach((button) => {
           button.addEventListener("click", () => {
-            elements.scheduleToggle.querySelectorAll("button").forEach((btn) => btn.classList.remove("active"));
-            button.classList.add("active");
-            state.scheduleView = button.dataset.scheduleView;
-            state.selectedClass = null;
-            renderSchedule();
+            setScheduleView(button.dataset.scheduleView);
           });
         });
+        if (elements.classmateSelect) {
+          elements.classmateSelect.addEventListener("change", () => {
+            const username = elements.classmateSelect.value;
+            const label = elements.classmateSelect.selectedOptions[0]?.textContent || "";
+            selectClassmate(username, label);
+          });
+        }
         elements.scheduleForm.addEventListener("submit", addScheduleItem);
       };
 
@@ -4973,11 +6449,18 @@
           return;
         }
         elements.friendForm.addEventListener("submit", addFriend);
+        if (elements.friendSearch) {
+          elements.friendSearch.addEventListener("input", renderFriends);
+        }
+        if (elements.friendScheduleDay) {
+          elements.friendScheduleDay.addEventListener("change", renderFriendSchedule);
+        }
       };
 
       const init = async () => {
         initNavigation();
         initSchedule();
+        initScheduleSetup();
         initChat();
         initStudySystem();
         initTodos();
@@ -4989,13 +6472,19 @@
         applySettings();
         renderSettings();
 
-        loadTodos();
         loadScheduleExtras();
 
         await loadUser();
         await loadProfile();
         const serverData = await loadServerData();
-        await maybeSeedServerData(serverData);
+        if (shouldStartScheduleSetup(serverData)) {
+          if (!Array.isArray(serverData.classes) || !serverData.classes.length) {
+            mockData.classes = [];
+          }
+          mockData.schedules.my = buildEmptySchedule();
+          openScheduleSetup();
+        }
+        loadTodos(!serverData);
         await loadChats();
         await loadFriends();
         await loadFriendRequests();

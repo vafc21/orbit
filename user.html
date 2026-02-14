@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Orbit - Profile</title>
-    <link rel="icon" href="assets/orbit-circle-logo.ico" />
+    <link rel="icon" href="/assets/orbit-circle-logo.ico" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -71,6 +71,10 @@
         text-decoration: none;
       }
 
+      [hidden] {
+        display: none !important;
+      }
+
       .page {
         display: flex;
         flex-direction: column;
@@ -127,6 +131,58 @@
 
       .nav-links a:hover {
         color: var(--text);
+      }
+
+      .nav-links .nav-user {
+        color: var(--text);
+      }
+
+      .nav-user {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+      }
+
+      .nav-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 14px;
+        background: var(--surface-strong);
+        border: 1px solid var(--border);
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+        overflow: hidden;
+      }
+
+      .nav-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .nav-user-meta {
+        display: grid;
+        gap: 2px;
+        font-family: "Spline Sans", "Trebuchet MS", sans-serif;
+      }
+
+      .nav-user-label {
+        font-size: 0.6rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .nav-user-name {
+        font-size: 0.85rem;
+        font-weight: 600;
       }
 
       .button {
@@ -300,14 +356,21 @@
       <header class="nav">
         <div class="brand">
           <div class="brand-mark">
-            <img class="brand-logo" src="assets/orbit-circle-logo.png" alt="Orbit logo" />
+            <img class="brand-logo" src="/assets/orbit-circle-logo.png" alt="Orbit logo" />
           </div>
           <div>Orbit</div>
         </div>
         <div class="nav-links">
           <a href="/">Dashboard</a>
           <a href="/about">About</a>
-          <a class="button ghost" href="/signin">Sign in</a>
+          <a class="button ghost" href="/signin" id="nav-signin" hidden>Sign in</a>
+          <a class="nav-user" href="/" id="nav-user" hidden>
+            <div class="nav-avatar" id="nav-avatar">OR</div>
+            <div class="nav-user-meta">
+              <span class="nav-user-label">Signed in</span>
+              <strong class="nav-user-name" id="nav-username">Student</strong>
+            </div>
+          </a>
         </div>
       </header>
 
@@ -325,13 +388,13 @@
             </div>
           </div>
         </div>
-        <div class="profile-card">
+        <div class="profile-card" id="profile-quick-view">
           <h2>Quick view</h2>
           <p>Schedules and classes shared by this student.</p>
         </div>
       </section>
 
-      <section class="section">
+      <section class="section" id="profile-schedule-section">
         <div class="card">
           <h2>Weekly schedule</h2>
           <div class="schedule-grid" id="schedule-grid"></div>
@@ -349,24 +412,40 @@
         bio: document.getElementById("profile-bio"),
         avatar: document.getElementById("profile-avatar"),
         scheduleGrid: document.getElementById("schedule-grid"),
+        navSignIn: document.getElementById("nav-signin"),
+        navUser: document.getElementById("nav-user"),
+        navAvatar: document.getElementById("nav-avatar"),
+        navUsername: document.getElementById("nav-username"),
+        quickView: document.getElementById("profile-quick-view"),
+        scheduleSection: document.getElementById("profile-schedule-section"),
       };
 
-      const setAvatar = (name, avatarUrl) => {
-        elements.avatar.innerHTML = "";
-        if (avatarUrl) {
-          const img = document.createElement("img");
-          img.src = avatarUrl;
-          img.alt = `${name} avatar`;
-          elements.avatar.appendChild(img);
-          return;
-        }
-        const initials = name
+      const buildInitials = (name) =>
+        String(name || "")
           .split(" ")
           .filter(Boolean)
           .map((part) => part[0].toUpperCase())
           .slice(0, 2)
           .join("");
-        elements.avatar.textContent = initials || "?";
+
+      const setAvatarElement = (element, name, avatarUrl, fallback = "?") => {
+        if (!element) {
+          return;
+        }
+        element.innerHTML = "";
+        if (avatarUrl) {
+          const img = document.createElement("img");
+          img.src = avatarUrl;
+          img.alt = `${name} avatar`;
+          element.appendChild(img);
+          return;
+        }
+        const initials = buildInitials(name);
+        element.textContent = initials || fallback;
+      };
+
+      const setAvatar = (name, avatarUrl) => {
+        setAvatarElement(elements.avatar, name, avatarUrl, "?");
       };
 
       const renderSchedule = (classes, schedule) => {
@@ -416,6 +495,44 @@
         }
       };
 
+      const updateNavUser = (user, profile) => {
+        if (!elements.navSignIn || !elements.navUser) {
+          return;
+        }
+        if (!user) {
+          elements.navSignIn.hidden = false;
+          elements.navUser.hidden = true;
+          return;
+        }
+        elements.navSignIn.hidden = true;
+        elements.navUser.hidden = false;
+        if (elements.navUsername) {
+          elements.navUsername.textContent = user;
+        }
+        setAvatarElement(elements.navAvatar, user, profile?.avatar || "", "OR");
+      };
+
+      const loadViewerProfile = async () => {
+        if (!elements.navSignIn || !elements.navUser) {
+          return;
+        }
+        try {
+          const response = await fetch("/api/profile");
+          if (response.status === 401) {
+            updateNavUser("", {});
+            return;
+          }
+          const data = await response.json();
+          if (!response.ok) {
+            updateNavUser("", {});
+            return;
+          }
+          updateNavUser(data.username || "", data.profile || {});
+        } catch (error) {
+          updateNavUser("", {});
+        }
+      };
+
       const loadProfile = async () => {
         const raw = window.location.pathname.split("/").pop() || "";
         const username = decodeURIComponent(raw);
@@ -440,7 +557,18 @@
           const profile = data.profile || {};
           elements.bio.textContent = profile.bio || "No bio yet.";
           setAvatar(data.username || username, profile.avatar || "");
-          renderSchedule(data.classes || [], data.schedule || {});
+          const shared = data.shared !== false;
+          if (elements.quickView) {
+            elements.quickView.hidden = !shared;
+          }
+          if (elements.scheduleSection) {
+            elements.scheduleSection.hidden = !shared;
+          }
+          if (shared) {
+            renderSchedule(data.classes || [], data.schedule || {});
+          } else if (elements.scheduleGrid) {
+            elements.scheduleGrid.innerHTML = "";
+          }
         } catch (error) {
           elements.name.textContent = "Profile not found";
           elements.bio.textContent = "Unable to load this profile.";
@@ -448,6 +576,7 @@
       };
 
       loadProfile();
+      loadViewerProfile();
     </script>
   </body>
 </html>

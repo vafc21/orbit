@@ -22,6 +22,7 @@ DATA_FILE = APP_DIR / "orbit-data.json"
 USER_FILE = APP_DIR / "orbit-user.json"
 CHAT_DIR = APP_DIR / "orbit-chats"
 ASSET_DIR = APP_DIR / "assets"
+CHAT_KEY_FILE = APP_DIR / "orbit-chat.key"
 
 SESSION_COOKIE = "orbit_session"
 SESSIONS = {}
@@ -32,6 +33,7 @@ DEMO_PASSWORD = "orbitdemo"
 DEMO_USERNAMES = ["jordan", "avery", "riley"]
 CHAT_RETENTION_DAYS = 30
 MAX_AVATAR_CHARS = 1_500_000
+CHAT_KEY_CACHE = None
 
 
 def is_demo_allowed():
@@ -59,8 +61,32 @@ def resolve_username(name, users=None):
 
 
 def chat_encryption_key():
-    value = os.environ.get("ORBIT_CHAT_KEY", "")
-    return value if value else None
+    global CHAT_KEY_CACHE
+    if CHAT_KEY_CACHE:
+        return CHAT_KEY_CACHE
+    value = os.environ.get("ORBIT_CHAT_KEY", "").strip()
+    if value:
+        CHAT_KEY_CACHE = value
+        return CHAT_KEY_CACHE
+    try:
+        if CHAT_KEY_FILE.exists():
+            value = CHAT_KEY_FILE.read_text(encoding="utf-8").strip()
+            if value:
+                CHAT_KEY_CACHE = value
+                return CHAT_KEY_CACHE
+    except Exception:
+        pass
+    value = secrets.token_urlsafe(32)
+    CHAT_KEY_CACHE = value
+    try:
+        CHAT_KEY_FILE.write_text(value, encoding="utf-8")
+        try:
+            os.chmod(CHAT_KEY_FILE, 0o600)
+        except Exception:
+            pass
+    except Exception:
+        pass
+    return CHAT_KEY_CACHE
 
 
 def ensure_chat_dir():
@@ -668,6 +694,18 @@ def get_friend_usernames(friends):
     return usernames
 
 
+def user_is_friend(viewer, target):
+    if not viewer or not target:
+        return False
+    if viewer.lower() == target.lower():
+        return True
+    store, friends, changed = get_user_friends(viewer)
+    if changed:
+        save_data_store(store)
+    friend_names = get_friend_usernames(friends)
+    return target.lower() in friend_names
+
+
 def parse_member_list(value):
     if isinstance(value, list):
         raw = value
@@ -988,12 +1026,16 @@ class OrbitHandler(BaseHTTPRequestHandler):
             if changed:
                 save_data_store(store)
             data = load_user_data(target_user)
+            can_view_schedule = user_is_friend(user, target_user)
+            if not can_view_schedule:
+                data = {"classes": [], "schedule": {day: [] for day in DAYS}}
             self._send_json(
                 {
                     "username": target_user,
                     "profile": profile,
                     "classes": data.get("classes", []),
                     "schedule": data.get("schedule", {}),
+                    "shared": can_view_schedule,
                 }
             )
             return
