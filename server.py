@@ -6,6 +6,8 @@ import json
 import os
 import re
 import secrets
+import shutil
+import threading
 from datetime import datetime, timedelta
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -36,7 +38,9 @@ DEMO_USERNAMES = ["jordan", "avery", "riley"]
 CHAT_RETENTION_DAYS = 30
 MAX_AVATAR_CHARS = 1_500_000
 MAX_SCHOOL_CHARS = 120
+MAX_GRADE_CHARS = 32
 CHAT_KEY_CACHE = None
+FILE_IO_LOCK = threading.RLock()
 
 
 def is_demo_allowed():
@@ -247,10 +251,181 @@ def guess_content_type(path):
     return "application/octet-stream"
 
 
+def default_study_data():
+    return {
+        "sets": [],
+        "cards": [],
+        "progress": {},
+        "activeSet": None,
+    }
+
+
+def sanitize_schedule_profile(value):
+    normalized = str(value or "").strip().lower()
+    if normalized in ("daily", "ab", "block", "custom"):
+        return normalized
+    return "custom"
+
+
 def default_data():
     return {
         "classes": [],
         "schedule": {day: [] for day in DAYS},
+        "scheduleProfile": "custom",
+        "todos": [],
+        "study": default_study_data(),
+    }
+
+
+def sanitize_todos(todos_in):
+    if not isinstance(todos_in, list):
+        return []
+    clean = []
+    seen_ids = set()
+    for entry in todos_in:
+        if not isinstance(entry, dict):
+            continue
+        class_id = str(entry.get("classId") or "").strip()
+        title = str(entry.get("title") or "").strip()
+        if not class_id or not title:
+            continue
+        todo_id = str(entry.get("id") or "").strip()
+        if not todo_id:
+            todo_id = f"todo-{secrets.token_hex(4)}"
+        if todo_id in seen_ids:
+            continue
+        seen_ids.add(todo_id)
+        due_date = str(entry.get("dueDate") or "").strip()
+        if due_date:
+            try:
+                datetime.strptime(due_date, "%Y-%m-%d")
+            except ValueError:
+                due_date = ""
+        clean.append(
+            {
+                "id": todo_id,
+                "classId": class_id,
+                "title": title,
+                "dueDate": due_date,
+                "notes": str(entry.get("notes") or "").strip(),
+                "completed": bool(entry.get("completed")),
+            }
+        )
+    return clean
+
+
+def sanitize_study(study_in):
+    if not isinstance(study_in, dict):
+        return default_study_data()
+
+    sets_in = study_in.get("sets")
+    cards_in = study_in.get("cards")
+    progress_in = study_in.get("progress")
+    active_set_in = study_in.get("activeSet")
+
+    clean_sets = []
+    set_ids = set()
+    if isinstance(sets_in, list):
+        for entry in sets_in:
+            if not isinstance(entry, dict):
+                continue
+            set_id = str(entry.get("id") or "").strip()
+            title = str(entry.get("title") or "").strip()
+            if not set_id or not title or set_id in set_ids:
+                continue
+            set_ids.add(set_id)
+            created_at = str(entry.get("createdAt") or "").strip() or datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+            visibility = "public" if str(entry.get("visibility") or "").strip().lower() == "public" else "private"
+            clean_sets.append(
+                {
+                    "id": set_id,
+                    "title": title,
+                    "description": str(entry.get("description") or "").strip(),
+                    "createdAt": created_at,
+                    "visibility": visibility,
+                }
+            )
+
+    clean_cards = []
+    card_ids = set()
+    if isinstance(cards_in, list):
+        for entry in cards_in:
+            if not isinstance(entry, dict):
+                continue
+            card_id = str(entry.get("id") or "").strip()
+            set_id = str(entry.get("setId") or "").strip()
+            term = str(entry.get("term") or "").strip()
+            definition = str(entry.get("definition") or "").strip()
+            if not card_id or not set_id or set_id not in set_ids or not term or not definition:
+                continue
+            if card_id in card_ids:
+                continue
+            card_ids.add(card_id)
+            clean_cards.append(
+                {
+                    "id": card_id,
+                    "setId": set_id,
+                    "term": term,
+                    "definition": definition,
+                    "starred": bool(entry.get("starred")),
+                }
+            )
+
+    clean_progress = {}
+    if isinstance(progress_in, dict):
+        for key, value in progress_in.items():
+            card_id = str(key or "").strip()
+            if card_id not in card_ids or not isinstance(value, dict):
+                continue
+            seen = value.get("seenCount", 0)
+            correct = value.get("correctCount", 0)
+            wrong = value.get("wrongCount", 0)
+            mastery = value.get("mastery", 0)
+            try:
+                seen = max(0, int(seen))
+            except Exception:
+                seen = 0
+            try:
+                correct = max(0, int(correct))
+            except Exception:
+                correct = 0
+            try:
+                wrong = max(0, int(wrong))
+            except Exception:
+                wrong = 0
+            try:
+                mastery = float(mastery)
+            except Exception:
+                mastery = 0
+            mastery = max(0.0, min(1.0, mastery))
+            clean_progress[card_id] = {
+                "cardId": card_id,
+                "seenCount": seen,
+                "correctCount": correct,
+                "wrongCount": wrong,
+                "mastery": mastery,
+            }
+
+    for card in clean_cards:
+        card_id = card["id"]
+        if card_id not in clean_progress:
+            clean_progress[card_id] = {
+                "cardId": card_id,
+                "seenCount": 0,
+                "correctCount": 0,
+                "wrongCount": 0,
+                "mastery": 0,
+            }
+
+    active_set = str(active_set_in or "").strip()
+    if active_set not in set_ids:
+        active_set = clean_sets[0]["id"] if clean_sets else None
+
+    return {
+        "sets": clean_sets,
+        "cards": clean_cards,
+        "progress": clean_progress,
+        "activeSet": active_set,
     }
 
 
@@ -309,17 +484,19 @@ def is_demo_user(user):
 def load_json(path):
     if not path.exists():
         return None
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
-        return None
+    with FILE_IO_LOCK:
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return None
 
 
 def write_json(path, payload):
-    path.write_text(
-        json.dumps(payload, indent=2, sort_keys=True),
-        encoding="utf-8",
-    )
+    serialized = json.dumps(payload, indent=2, sort_keys=True)
+    with FILE_IO_LOCK:
+        tmp_path = path.with_name(f"{path.name}.tmp")
+        tmp_path.write_text(serialized, encoding="utf-8")
+        os.replace(tmp_path, path)
 
 
 def load_users():
@@ -422,6 +599,10 @@ def verify_user(username, password):
 def load_data_store():
     data = load_json(DATA_FILE)
     if not isinstance(data, dict):
+        backup_data = load_json(APP_DIR / "orbit-data.backup.json")
+        if isinstance(backup_data, dict):
+            data = backup_data
+    if not isinstance(data, dict):
         return {"users": {}}
     if isinstance(data.get("users"), dict):
         return data
@@ -431,6 +612,12 @@ def load_data_store():
 
 
 def save_data_store(store):
+    if DATA_FILE.exists():
+        backup_path = APP_DIR / "orbit-data.backup.json"
+        try:
+            shutil.copy2(DATA_FILE, backup_path)
+        except Exception:
+            pass
     store["updated_at"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     write_json(DATA_FILE, store)
 
@@ -460,6 +647,8 @@ def ensure_demo_data(store):
         if schedule_empty:
             entry["schedule"] = template["schedule"]
             changed = True
+        if ensure_account_data_fields(entry):
+            changed = True
     return changed
 
 
@@ -487,7 +676,14 @@ def get_user_entry(username):
         else:
             users[username] = default_data()
         changed = True
-    return store, users[username], changed
+    entry = users.get(username)
+    if not isinstance(entry, dict):
+        entry = default_data()
+        users[username] = entry
+        changed = True
+    if ensure_account_data_fields(entry):
+        changed = True
+    return store, entry, changed
 
 
 def get_user_chats(username):
@@ -561,29 +757,26 @@ def get_user_groups(username):
 
 def sanitize_profile(profile):
     if not isinstance(profile, dict):
-        return {"bio": "", "avatar": "", "school": ""}
+        return {"bio": "", "avatar": "", "school": "", "grade": ""}
     bio = str(profile.get("bio") or "").strip()
     avatar = str(profile.get("avatar") or "").strip()
     school = str(profile.get("school") or "").strip()
+    grade = str(profile.get("grade") or "").strip()
     if len(avatar) > MAX_AVATAR_CHARS:
         avatar = ""
     if len(school) > MAX_SCHOOL_CHARS:
         school = school[:MAX_SCHOOL_CHARS]
-    return {"bio": bio, "avatar": avatar, "school": school}
+    if len(grade) > MAX_GRADE_CHARS:
+        grade = grade[:MAX_GRADE_CHARS]
+    return {"bio": bio, "avatar": avatar, "school": school, "grade": grade}
 
 
 def get_user_profile(username):
     store, entry, changed = get_user_entry(username)
     profile = entry.get("profile")
     if not isinstance(profile, dict):
-        profile = {"bio": "", "avatar": "", "school": ""}
-        entry["profile"] = profile
-        changed = True
-    cleaned = sanitize_profile(profile)
-    if cleaned != profile:
-        entry["profile"] = cleaned
-        changed = True
-    return store, cleaned, changed
+        return store, {"bio": "", "avatar": "", "school": "", "grade": ""}, changed
+    return store, sanitize_profile(profile), changed
 
 
 def save_user_profile(username, profile):
@@ -603,6 +796,7 @@ def ensure_store_user_entry(store, username):
     if not isinstance(entry, dict):
         entry = default_data()
         users[username] = entry
+    ensure_account_data_fields(entry)
     return entry
 
 
@@ -770,14 +964,27 @@ def add_group_to_user(store, username, group):
 
 def load_user_data(username):
     store = load_data_store()
+    changed = False
     if ensure_demo_data(store):
+        changed = True
+    users = store.setdefault("users", {})
+    if username not in users:
+        if "__legacy__" in users:
+            users[username] = users.pop("__legacy__")
+        else:
+            users[username] = default_data()
+        changed = True
+    entry = users.get(username)
+    if not isinstance(entry, dict):
+        entry = default_data()
+        users[username] = entry
+        changed = True
+    fields_changed = ensure_account_data_fields(entry)
+    if fields_changed:
+        changed = True
+    if changed:
         save_data_store(store)
-    users = store.get("users", {})
-    if username in users:
-        return users[username]
-    if "__legacy__" in users:
-        return users["__legacy__"]
-    return default_data()
+    return entry
 
 
 def sanitize_data(data):
@@ -839,7 +1046,54 @@ def sanitize_data(data):
     return {
         "classes": clean_classes,
         "schedule": clean_schedule,
+        "scheduleProfile": sanitize_schedule_profile(data.get("scheduleProfile")),
+        "todos": sanitize_todos(data.get("todos")),
+        "study": sanitize_study(data.get("study")),
     }
+
+
+def ensure_account_data_fields(entry):
+    if not isinstance(entry, dict):
+        return False
+    changed = False
+    if not isinstance(entry.get("classes"), list):
+        entry["classes"] = []
+        changed = True
+    schedule = entry.get("schedule")
+    if not isinstance(schedule, dict):
+        schedule = {day: [] for day in DAYS}
+        entry["schedule"] = schedule
+        changed = True
+    for day in DAYS:
+        if not isinstance(schedule.get(day), list):
+            schedule[day] = []
+            changed = True
+    current_profile = sanitize_schedule_profile(entry.get("scheduleProfile"))
+    if entry.get("scheduleProfile") != current_profile:
+        entry["scheduleProfile"] = current_profile
+        changed = True
+    if not isinstance(entry.get("todos"), list):
+        entry["todos"] = []
+        changed = True
+    study = entry.get("study")
+    if not isinstance(study, dict):
+        entry["study"] = default_study_data()
+        changed = True
+    else:
+        if not isinstance(study.get("sets"), list):
+            study["sets"] = []
+            changed = True
+        if not isinstance(study.get("cards"), list):
+            study["cards"] = []
+            changed = True
+        if not isinstance(study.get("progress"), dict):
+            study["progress"] = {}
+            changed = True
+        active_set = study.get("activeSet")
+        if active_set is not None and not isinstance(active_set, str):
+            study["activeSet"] = None
+            changed = True
+    return changed
 
 
 def save_user_data(username, data):
@@ -849,6 +1103,11 @@ def save_user_data(username, data):
     users = store.setdefault("users", {})
     users.pop("__legacy__", None)
     existing = users.get(username, {})
+    include_schedule_profile = isinstance(data, dict) and "scheduleProfile" in data
+    include_todos = isinstance(data, dict) and "todos" in data
+    include_study = isinstance(data, dict) and "study" in data
+    if isinstance(existing, dict):
+        ensure_account_data_fields(existing)
     base = sanitize_data(data)
     if isinstance(existing, dict):
         if isinstance(existing.get("friends"), list):
@@ -861,7 +1120,29 @@ def save_user_data(username, data):
             base["friend_requests"] = existing["friend_requests"]
         if isinstance(existing.get("profile"), dict):
             base["profile"] = existing["profile"]
+        if not include_schedule_profile and isinstance(existing.get("scheduleProfile"), str):
+            base["scheduleProfile"] = sanitize_schedule_profile(existing.get("scheduleProfile"))
+        if not include_todos and isinstance(existing.get("todos"), list):
+            base["todos"] = existing["todos"]
+        if not include_study and isinstance(existing.get("study"), dict):
+            base["study"] = existing["study"]
     users[username] = base
+    save_data_store(store)
+
+
+def save_user_todos(username, todos):
+    store = load_data_store()
+    ensure_demo_data(store)
+    entry = ensure_store_user_entry(store, username)
+    entry["todos"] = sanitize_todos(todos)
+    save_data_store(store)
+
+
+def save_user_study(username, study):
+    store = load_data_store()
+    ensure_demo_data(store)
+    entry = ensure_store_user_entry(store, username)
+    entry["study"] = sanitize_study(study)
     save_data_store(store)
 
 
@@ -877,15 +1158,37 @@ def parse_cookies(cookie_header):
     return cookies
 
 
+def get_cookie_values(cookie_header, cookie_name):
+    values = []
+    if not cookie_header:
+        return values
+    for part in cookie_header.split(";"):
+        if "=" not in part:
+            continue
+        name, value = part.strip().split("=", 1)
+        if name == cookie_name:
+            values.append(value)
+    return values
+
+
 def get_session_user(headers):
-    cookies = parse_cookies(headers.get("Cookie", ""))
-    session_id = cookies.get(SESSION_COOKIE)
-    if session_id and session_id in SESSIONS:
-        return SESSIONS[session_id]
+    cookie_header = headers.get("Cookie", "")
+    session_ids = get_cookie_values(cookie_header, SESSION_COOKIE)
+    # Some browsers can send duplicate cookie names if stale host/domain variants exist.
+    # Prefer the newest valid session id by checking from right to left.
+    for session_id in reversed(session_ids):
+        if session_id in SESSIONS:
+            return SESSIONS[session_id]
     return None
 
 
-def set_session(headers, username):
+def set_session(headers, username, request_headers=None):
+    # Rotate existing sessions present in the request to avoid sticky-user issues
+    # when duplicate orbit_session cookies exist.
+    if request_headers is not None:
+        existing_ids = get_cookie_values(request_headers.get("Cookie", ""), SESSION_COOKIE)
+        for session_id in existing_ids:
+            SESSIONS.pop(session_id, None)
     session_id = secrets.token_urlsafe(32)
     SESSIONS[session_id] = username
     headers.append(
@@ -1035,9 +1338,7 @@ class OrbitHandler(BaseHTTPRequestHandler):
             user = self._require_auth()
             if not user:
                 return
-            store, profile, changed = get_user_profile(user)
-            if changed:
-                save_data_store(store)
+            _store, profile, _changed = get_user_profile(user)
             self._send_json({"username": user, "profile": profile})
             return
 
@@ -1055,9 +1356,7 @@ class OrbitHandler(BaseHTTPRequestHandler):
             if not target_user:
                 self._send_json({"error": "user not found"}, status=HTTPStatus.NOT_FOUND)
                 return
-            store, profile, changed = get_user_profile(target_user)
-            if changed:
-                save_data_store(store)
+            _store, profile, _changed = get_user_profile(target_user)
             data = load_user_data(target_user)
             can_view_schedule = user_is_friend(user, target_user)
             if not can_view_schedule:
@@ -1068,6 +1367,7 @@ class OrbitHandler(BaseHTTPRequestHandler):
                     "profile": profile,
                     "classes": data.get("classes", []),
                     "schedule": data.get("schedule", {}),
+                    "scheduleProfile": data.get("scheduleProfile", "custom") if can_view_schedule else "custom",
                     "shared": can_view_schedule,
                 }
             )
@@ -1158,7 +1458,7 @@ class OrbitHandler(BaseHTTPRequestHandler):
                 self._send_json(response, status=status)
                 return
             headers = []
-            set_session(headers, username)
+            set_session(headers, username, self.headers)
             self._send_json({}, extra_headers=headers)
             return
 
@@ -1173,7 +1473,7 @@ class OrbitHandler(BaseHTTPRequestHandler):
                 self._send_json(response, status=status)
                 return
             headers = []
-            set_session(headers, username)
+            set_session(headers, username, self.headers)
             self._send_json({}, extra_headers=headers)
             return
 
@@ -1197,15 +1497,16 @@ class OrbitHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": "invalid credentials"}, status=HTTPStatus.UNAUTHORIZED)
                 return
             headers = []
-            set_session(headers, username)
+            set_session(headers, username, self.headers)
             self._send_json({}, extra_headers=headers)
             return
 
         if path == "/api/logout":
-            cookies = parse_cookies(self.headers.get("Cookie", ""))
-            session_id = cookies.get(SESSION_COOKIE)
+            session_ids = get_cookie_values(self.headers.get("Cookie", ""), SESSION_COOKIE)
+            for session_id in session_ids:
+                SESSIONS.pop(session_id, None)
             headers = []
-            clear_session(headers, session_id)
+            clear_session(headers, None)
             self._send_json({}, extra_headers=headers)
             return
 
@@ -1217,6 +1518,30 @@ class OrbitHandler(BaseHTTPRequestHandler):
             if payload is None:
                 return
             save_user_data(user, payload)
+            self._send_json({"ok": True})
+            return
+
+        if path == "/api/todos":
+            user = self._require_auth()
+            if not user:
+                return
+            payload = self._read_json()
+            if payload is None:
+                return
+            todos = payload.get("todos") if isinstance(payload, dict) else []
+            save_user_todos(user, todos)
+            self._send_json({"ok": True})
+            return
+
+        if path == "/api/study":
+            user = self._require_auth()
+            if not user:
+                return
+            payload = self._read_json()
+            if payload is None:
+                return
+            study = payload.get("study") if isinstance(payload, dict) else {}
+            save_user_study(user, study)
             self._send_json({"ok": True})
             return
 

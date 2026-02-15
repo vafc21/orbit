@@ -444,6 +444,14 @@
         gap: 12px;
       }
 
+      .schedule-heading {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
       .schedule-select {
         background: var(--surface-2);
         border: 1px solid var(--border);
@@ -1678,6 +1686,7 @@
         align-items: flex-end;
         gap: 12px;
         z-index: 20;
+        pointer-events: none;
       }
 
       .feedback-toggle {
@@ -1691,6 +1700,7 @@
         place-items: center;
         cursor: pointer;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
+        pointer-events: auto;
       }
 
       .feedback-toggle:hover {
@@ -1958,7 +1968,7 @@
               <div class="avatar" id="user-avatar">JL</div>
               <div>
                 <strong id="user-name">Jordan Lee</strong>
-                <small id="user-grade">11th grade</small>
+                <small id="user-grade">Grade not set</small>
               </div>
             </div>
           </div>
@@ -1974,7 +1984,10 @@
             </div>
           </div>
           <div class="card">
-            <h3>Weekly schedule</h3>
+            <div class="schedule-heading">
+              <h3>Weekly schedule</h3>
+              <span class="tag" id="schedule-profile-badge">Custom</span>
+            </div>
             <p class="muted">Tap any class block to see who is in it, where to go, and what's next.</p>
             <div class="schedule-controls">
               <div class="segmented" id="schedule-toggle">
@@ -2033,6 +2046,10 @@
                 <label class="setup-field" for="setup-school">
                   School name
                   <input id="setup-school" type="text" placeholder="Your school" autocomplete="organization" />
+                </label>
+                <label class="setup-field" for="setup-grade">
+                  Grade
+                  <input id="setup-grade" type="text" placeholder="e.g. 10, 11, 12" autocomplete="off" />
                 </label>
               </div>
               <div class="setup-options" id="setup-options">
@@ -2416,7 +2433,7 @@
             <h3>Student profile</h3>
             <div class="details-grid">
               <div><span class="muted">Name</span><strong id="profile-name">Jordan Lee</strong></div>
-              <div><span class="muted">Grade</span><strong id="profile-grade">11</strong></div>
+              <div><span class="muted">Grade</span><strong id="profile-grade">Not set</strong></div>
               <div><span class="muted">School</span><strong id="profile-school">Not set</strong></div>
             </div>
           </div>
@@ -2486,27 +2503,8 @@
         return schedule;
       };
 
-      const demoProfiles = [
-        {
-          name: "Avery Chen",
-          grade: "10",
-        },
-        {
-          name: "Jordan Park",
-          grade: "11",
-        },
-        {
-          name: "Maya Ortiz",
-          grade: "12",
-        },
-        {
-          name: "Elliot Brooks",
-          grade: "9",
-        },
-      ];
-
       const pickRandom = (list) => list[Math.floor(Math.random() * list.length)];
-      const activeProfile = pickRandom(demoProfiles);
+      const activeProfile = { name: "User", grade: "" };
 
       const formatInputDate = (date) => {
         const year = date.getFullYear();
@@ -2534,26 +2532,31 @@
             { title: "Finish AP CS binary search notes", offset: 1, notes: "Add edge cases from class." },
             { title: "Bio quiz practice", offset: 2, notes: "Review vocab terms 1-20." },
             { title: "History DBQ outline", offset: 3, notes: "Thesis + 3 body claims." },
+            { title: "Quizlet prep: US History terms", offset: 4, notes: "Build and review a 20-term set." },
           ],
           luna: [
             { title: "Algebra worksheet corrections", offset: 1, notes: "Rework missed problems." },
             { title: "English reading response", offset: 2, notes: "Use two direct quotes." },
             { title: "Chem lab conclusion", offset: 4, notes: "Submit before Friday." },
+            { title: "Quizlet prep: French vocab set", offset: 5, notes: "Study 25 words before quiz." },
           ],
           nina: [
             { title: "Spanish vocab check", offset: 1, notes: "Practice unit 5 verbs." },
             { title: "Geometry proofs review", offset: 3, notes: "Focus on angle theorems." },
             { title: "Prepare group presentation slides", offset: 4, notes: "Final review with team." },
+            { title: "Quizlet prep: Bio chapter cards", offset: 5, notes: "Review matching mode." },
           ],
           omar: [
             { title: "Physics problem set", offset: 2, notes: "Show all work for full credit." },
             { title: "World history flashcards", offset: 3, notes: "30 terms minimum." },
             { title: "Draft essay intro paragraph", offset: 5, notes: "Bring printed copy." },
+            { title: "Quizlet prep: Chemistry equations", offset: 6, notes: "Memorize key reaction pairs." },
           ],
           sam: [
             { title: "Study hall planning checklist", offset: 1, notes: "Prioritize week tasks." },
             { title: "Chem equations practice", offset: 2, notes: "Balance ten equations." },
             { title: "Math challenge packet", offset: 5, notes: "Attempt bonus section." },
+            { title: "Quizlet prep: AP CS vocab", offset: 6, notes: "Review definitions and examples." },
           ],
         };
         const templates = templatesByUser[username] || templatesByUser.vlad;
@@ -2720,7 +2723,6 @@
             { sender: "Devon", text: "Project groups posted in Orbit.", time: "9:02 AM" },
           ],
         },
-        todosSeed: buildTodosSeed(),
         settings: [
           { id: "notifications", label: "Notifications", default: true },
           { id: "reminders", label: "Study reminders", default: true },
@@ -2733,6 +2735,7 @@
       const state = {
         page: "schedule",
         scheduleView: "my",
+        scheduleProfile: "custom",
         selectedClass: null,
         scheduleExtras: [],
         scheduleSetup: {
@@ -2748,10 +2751,23 @@
       const classmateState = {
         username: "",
         name: "Add a friend",
+        scheduleProfile: "custom",
         schedule: createEmptySchedule(),
         classes: [],
         loaded: false,
       };
+
+      const accountSeedFallbackUsers = new Set([
+        "vlad",
+        "avery",
+        "hacker-man",
+        "jordan",
+        "luna",
+        "nina",
+        "omar",
+        "riley",
+        "sam",
+      ]);
 
       const getActiveStorageScope = () => {
         const username = String(activeProfile.name || "").trim().toLowerCase();
@@ -2809,6 +2825,7 @@
         bio: "",
         avatar: "",
         school: "",
+        grade: "",
       };
 
       const groupsState = {
@@ -2912,6 +2929,7 @@
         profileAvatarPreview: document.getElementById("profile-avatar-preview"),
         viewProfileLink: document.getElementById("view-profile-link"),
         classmateName: document.getElementById("classmate-name"),
+        scheduleProfileBadge: document.getElementById("schedule-profile-badge"),
         classmateSelect: document.getElementById("classmate-select"),
         scheduleGrid: document.getElementById("schedule-grid"),
         scheduleToggle: document.getElementById("schedule-toggle"),
@@ -2929,6 +2947,7 @@
         scheduleSetup: document.getElementById("schedule-setup"),
         scheduleSetupOptions: document.getElementById("setup-options"),
         scheduleSetupSchool: document.getElementById("setup-school"),
+        scheduleSetupGrade: document.getElementById("setup-grade"),
         scheduleSetupDetails: document.getElementById("setup-details"),
         scheduleSetupForms: document.getElementById("setup-forms"),
         scheduleSetupNote: document.getElementById("setup-note"),
@@ -3057,17 +3076,18 @@
       ];
 
       const applyDemoProfile = () => {
-        const name = activeProfile.name;
+        const name = activeProfile.name || "User";
+        const gradeLabel = profileState.grade ? `Grade ${profileState.grade}` : "Grade not set";
         setAvatar(elements.userAvatar, name, profileState.avatar);
         elements.userName.textContent = name;
-        elements.userGrade.textContent = `Grade ${activeProfile.grade}`;
+        elements.userGrade.textContent = gradeLabel;
         elements.mobileUser.textContent = `Signed in as ${name}`;
         if (elements.authStatus) {
           elements.authStatus.textContent = `Signed in as ${name}`;
         }
         elements.sidebarName.textContent = name;
         elements.profileName.textContent = name;
-        elements.profileGrade.textContent = activeProfile.grade;
+        elements.profileGrade.textContent = profileState.grade || "Not set";
         if (elements.profileSchool) {
           elements.profileSchool.textContent = profileState.school || "Not set";
         }
@@ -3160,6 +3180,152 @@
         return hasEntries ? normalized : null;
       };
 
+      const normalizeScheduleProfile = (value) => {
+        const normalized = String(value || "")
+          .trim()
+          .toLowerCase();
+        if (normalized === "daily" || normalized === "ab" || normalized === "block" || normalized === "custom") {
+          return normalized;
+        }
+        return "custom";
+      };
+
+      const inferScheduleProfile = (schedule) => {
+        if (!schedule || typeof schedule !== "object") {
+          return "custom";
+        }
+        const signatures = {};
+        dayOrder.forEach((day) => {
+          const entries = Array.isArray(schedule[day]) ? schedule[day] : [];
+          signatures[day] = entries.map((entry) => `${entry.classId}|${entry.start}|${entry.end}`).join(",");
+        });
+        const values = dayOrder.map((day) => signatures[day]);
+        if (!values.some((value) => value)) {
+          return "custom";
+        }
+        const allSame = values.every((value) => value === values[0]);
+        if (allSame) {
+          return "daily";
+        }
+        const monWedFriSame = signatures.Mon === signatures.Wed && signatures.Wed === signatures.Fri;
+        const tueThuSame = signatures.Tue === signatures.Thu;
+        if (monWedFriSame && tueThuSame) {
+          return "ab";
+        }
+        if (new Set(values).size >= 2) {
+          return "block";
+        }
+        return "custom";
+      };
+
+      const scheduleProfileLabels = {
+        daily: "Every day same",
+        ab: "A-B days",
+        block: "Block schedule",
+        custom: "Custom",
+      };
+
+      const getActiveScheduleProfile = () =>
+        state.scheduleView === "classmate" ? classmateState.scheduleProfile : state.scheduleProfile;
+
+      const renderScheduleProfileBadge = () => {
+        if (!elements.scheduleProfileBadge) {
+          return;
+        }
+        const profile = normalizeScheduleProfile(getActiveScheduleProfile());
+        const label = scheduleProfileLabels[profile] || scheduleProfileLabels.custom;
+        elements.scheduleProfileBadge.textContent = label;
+        const owner = state.scheduleView === "classmate" ? classmateState.name || "Classmate" : "My";
+        elements.scheduleProfileBadge.setAttribute("aria-label", `${owner} schedule type: ${label}`);
+      };
+
+      const normalizeServerTodos = (todos) => {
+        if (!Array.isArray(todos)) {
+          return [];
+        }
+        return todos
+          .filter((todo) => todo && typeof todo === "object")
+          .map((todo) => ({
+            id: String(todo.id || "").trim(),
+            classId: String(todo.classId || "").trim(),
+            title: String(todo.title || "").trim(),
+            dueDate: String(todo.dueDate || "").trim(),
+            notes: String(todo.notes || "").trim(),
+            completed: !!todo.completed,
+          }))
+          .filter((todo) => todo.id && todo.classId && todo.title);
+      };
+
+      const normalizeServerStudy = (study) => {
+        if (!study || typeof study !== "object") {
+          return null;
+        }
+        const sets = Array.isArray(study.sets)
+          ? study.sets
+              .filter((set) => set && typeof set === "object")
+              .map((set) => ({
+                id: String(set.id || "").trim(),
+                title: String(set.title || "").trim(),
+                description: String(set.description || "").trim(),
+                createdAt: String(set.createdAt || "").trim(),
+                visibility: String(set.visibility || "").trim().toLowerCase() === "public" ? "public" : "private",
+              }))
+              .filter((set) => set.id && set.title)
+          : [];
+        const setIds = new Set(sets.map((set) => set.id));
+        const cards = Array.isArray(study.cards)
+          ? study.cards
+              .filter((card) => card && typeof card === "object")
+              .map((card) => ({
+                id: String(card.id || "").trim(),
+                setId: String(card.setId || "").trim(),
+                term: String(card.term || "").trim(),
+                definition: String(card.definition || "").trim(),
+                starred: !!card.starred,
+              }))
+              .filter((card) => card.id && card.setId && setIds.has(card.setId) && card.term && card.definition)
+          : [];
+        const cardIds = new Set(cards.map((card) => card.id));
+        const progress = {};
+        if (study.progress && typeof study.progress === "object") {
+          Object.entries(study.progress).forEach(([key, value]) => {
+            const cardId = String(key || "").trim();
+            if (!cardId || !cardIds.has(cardId) || !value || typeof value !== "object") {
+              return;
+            }
+            const seenCount = Number(value.seenCount);
+            const correctCount = Number(value.correctCount);
+            const wrongCount = Number(value.wrongCount);
+            const mastery = Number(value.mastery);
+            progress[cardId] = {
+              cardId,
+              seenCount: Number.isFinite(seenCount) ? Math.max(0, Math.trunc(seenCount)) : 0,
+              correctCount: Number.isFinite(correctCount) ? Math.max(0, Math.trunc(correctCount)) : 0,
+              wrongCount: Number.isFinite(wrongCount) ? Math.max(0, Math.trunc(wrongCount)) : 0,
+              mastery: Number.isFinite(mastery) ? Math.max(0, Math.min(1, mastery)) : 0,
+            };
+          });
+        }
+        cards.forEach((card) => {
+          if (progress[card.id]) {
+            return;
+          }
+          progress[card.id] = {
+            cardId: card.id,
+            seenCount: 0,
+            correctCount: 0,
+            wrongCount: 0,
+            mastery: 0,
+          };
+        });
+        const requestedActive = String(study.activeSet || "").trim();
+        const activeSet = setIds.has(requestedActive) ? requestedActive : sets[0]?.id || null;
+        return { sets, cards, progress, activeSet };
+      };
+
+      const hasStudyContent = (study) =>
+        !!(study && Array.isArray(study.sets) && study.sets.length && Array.isArray(study.cards) && study.cards.length);
+
       const applyServerData = (data) => {
         if (!data || typeof data !== "object") {
           return;
@@ -3172,6 +3338,9 @@
         if (serverSchedule) {
           mockData.schedules.my = serverSchedule;
         }
+        const hasScheduleProfile = Object.prototype.hasOwnProperty.call(data, "scheduleProfile");
+        const inferredProfile = inferScheduleProfile(serverSchedule || mockData.schedules.my);
+        state.scheduleProfile = hasScheduleProfile ? normalizeScheduleProfile(data.scheduleProfile) : inferredProfile;
       };
 
       const loadUser = async () => {
@@ -3227,10 +3396,12 @@
           profileState.bio = profile.bio || "";
           profileState.avatar = profile.avatar || "";
           profileState.school = profile.school || "";
+          profileState.grade = profile.grade || "";
         } catch (error) {
           profileState.bio = "";
           profileState.avatar = "";
           profileState.school = "";
+          profileState.grade = "";
         }
         applyProfileForm();
       };
@@ -3241,7 +3412,12 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              profile: { bio: profileState.bio, avatar: profileState.avatar, school: profileState.school },
+              profile: {
+                bio: profileState.bio,
+                avatar: profileState.avatar,
+                school: profileState.school,
+                grade: profileState.grade,
+              },
             }),
           });
           if (response.status === 401) {
@@ -3325,6 +3501,7 @@
           const payload = {
             classes: mockData.classes,
             schedule: buildSchedulePayload(),
+            scheduleProfile: normalizeScheduleProfile(state.scheduleProfile || inferScheduleProfile(mockData.schedules.my)),
           };
           const response = await fetch("/api/data", {
             method: "POST",
@@ -3452,6 +3629,7 @@
         renderClassDetails();
         updateCountdown(schedule);
         setScheduleFormState();
+        renderScheduleProfileBadge();
       };
 
       const setScheduleFormState = () => {
@@ -3564,6 +3742,7 @@
       const resetClassmateState = () => {
         classmateState.username = "";
         classmateState.name = "Add a friend";
+        classmateState.scheduleProfile = "custom";
         classmateState.schedule = createEmptySchedule();
         classmateState.classes = [];
         classmateState.loaded = false;
@@ -3571,6 +3750,7 @@
         updateClassmateLabel();
         updateClassmateToggleState();
         updateClassmateSelectVisibility();
+        renderScheduleProfileBadge();
       };
 
       const loadClassmateSchedule = async (username) => {
@@ -3587,10 +3767,15 @@
             throw new Error("Classmate load failed");
           }
           const data = await response.json();
+          const normalizedSchedule = normalizeServerSchedule(data.schedule) || buildEmptySchedule();
+          const hasScheduleProfile = Object.prototype.hasOwnProperty.call(data, "scheduleProfile");
           return {
             username: data.username || username,
             classes: normalizeServerClasses(data.classes) || [],
-            schedule: normalizeServerSchedule(data.schedule) || buildEmptySchedule(),
+            schedule: normalizedSchedule,
+            scheduleProfile: hasScheduleProfile
+              ? normalizeScheduleProfile(data.scheduleProfile)
+              : inferScheduleProfile(normalizedSchedule),
           };
         } catch (error) {
           return null;
@@ -3607,10 +3792,12 @@
           updateClassmateLabel();
           updateClassmateToggleState();
           updateClassmateSelectVisibility();
+          renderScheduleProfileBadge();
           return;
         }
         classmateState.username = username;
         classmateState.name = label || username;
+        classmateState.scheduleProfile = "custom";
         classmateState.schedule = createEmptySchedule();
         classmateState.classes = [];
         classmateState.loaded = false;
@@ -3625,12 +3812,14 @@
         }
         classmateState.username = username;
         classmateState.name = label || data.username || username;
+        classmateState.scheduleProfile = normalizeScheduleProfile(data.scheduleProfile);
         classmateState.schedule = data.schedule || buildEmptySchedule();
         classmateState.classes = data.classes || [];
         classmateState.loaded = true;
         updateClassmateLabel();
         updateClassmateToggleState();
         updateClassmateSelectVisibility();
+        renderScheduleProfileBadge();
         if (state.scheduleView === "classmate") {
           state.selectedClass = null;
           renderSchedule();
@@ -3682,6 +3871,9 @@
         }
         if (elements.scheduleSetupSchool) {
           elements.scheduleSetupSchool.value = profileState.school || "";
+        }
+        if (elements.scheduleSetupGrade) {
+          elements.scheduleSetupGrade.value = profileState.grade || "";
         }
         if (elements.scheduleSetupDetails) {
           elements.scheduleSetupDetails.hidden = true;
@@ -3915,6 +4107,7 @@
           const payload = {
             classes: mockData.classes,
             schedule: buildSchedulePayload(),
+            scheduleProfile: normalizeScheduleProfile(state.scheduleProfile),
           };
           const response = await fetch("/api/data", {
             method: "POST",
@@ -3964,6 +4157,7 @@
         }
         mockData.classes = built.classes;
         mockData.schedules.my = built.schedule;
+        state.scheduleProfile = normalizeScheduleProfile(state.scheduleSetup.type);
         const saved = await saveScheduleToServer();
         if (!saved) {
           if (elements.scheduleSetupError) {
@@ -3974,6 +4168,9 @@
         }
         if (elements.scheduleSetupSchool) {
           profileState.school = elements.scheduleSetupSchool.value.trim();
+          if (elements.scheduleSetupGrade) {
+            profileState.grade = elements.scheduleSetupGrade.value.trim();
+          }
           await saveProfile();
           applyDemoProfile();
         }
@@ -4436,27 +4633,20 @@
         elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
       };
 
-      const studyStorage = {
-        get(key, fallback) {
-          try {
-            const scopedValue = localStorage.getItem(scopedStorageKey(key));
-            if (scopedValue !== null) {
-              return JSON.parse(scopedValue);
-            }
-            const legacyValue = localStorage.getItem(key);
-            if (legacyValue !== null) {
-              const parsed = JSON.parse(legacyValue);
-              localStorage.setItem(scopedStorageKey(key), JSON.stringify(parsed));
-              return parsed;
-            }
-            return fallback;
-          } catch (error) {
-            return fallback;
+      const readLegacyStudyStorage = (key, fallback) => {
+        try {
+          const scopedValue = localStorage.getItem(scopedStorageKey(key));
+          if (scopedValue !== null) {
+            return JSON.parse(scopedValue);
           }
-        },
-        set(key, value) {
-          localStorage.setItem(scopedStorageKey(key), JSON.stringify(value));
-        },
+          const legacyValue = localStorage.getItem(key);
+          if (legacyValue !== null) {
+            return JSON.parse(legacyValue);
+          }
+          return fallback;
+        } catch (error) {
+          return fallback;
+        }
       };
 
       const studyKeys = {
@@ -4571,8 +4761,8 @@
         const username = String(activeProfile.name || "").trim().toLowerCase() || "user";
         const setDefinitions = [
           {
-            title: "Biology Essentials",
-            description: "Cells, energy, and genetics quick review.",
+            title: "Quizlet Prep: Biology Essentials",
+            description: "Cells, energy, and genetics quick review before the quiz.",
             visibility: "private",
             cards: [
               ["Mitosis", "Cell division that makes two identical daughter cells."],
@@ -4582,8 +4772,8 @@
             ],
           },
           {
-            title: "US History Key Terms",
-            description: "Important events and ideas for upcoming quiz.",
+            title: "Quizlet Prep: US History Key Terms",
+            description: "Important events and ideas for the upcoming unit quiz.",
             visibility: "public",
             cards: [
               ["Federalism", "Power shared between national and state governments."],
@@ -4630,31 +4820,91 @@
         };
       };
 
-      const loadStudyData = () => {
-        studyData.sets = studyStorage.get(studyKeys.sets, []).map((set) => ({
-          ...set,
+      const buildStudyPayload = () => ({
+        sets: studyData.sets.map((set) => ({
+          id: set.id,
+          title: set.title,
+          description: set.description || "",
+          createdAt: set.createdAt || new Date().toISOString(),
           visibility: set.visibility === "public" ? "public" : "private",
-        }));
-        studyData.cards = studyStorage.get(studyKeys.cards, []);
-        studyData.progress = studyStorage.get(studyKeys.progress, {});
-        if (!studyData.sets.length && !studyData.cards.length) {
-          const seeded = buildStudySeed();
-          studyData.sets = seeded.sets;
-          studyData.cards = seeded.cards;
-          studyData.progress = seeded.progress;
-          studyState.selectedSetId = seeded.activeSet;
-          saveStudyData();
+        })),
+        cards: studyData.cards.map((card) => ({
+          id: card.id,
+          setId: card.setId,
+          term: card.term,
+          definition: card.definition,
+          starred: !!card.starred,
+        })),
+        progress: { ...studyData.progress },
+        activeSet: studyState.selectedSetId || null,
+      });
+
+      const saveStudyDataToServer = async () => {
+        try {
+          const response = await fetch("/api/study", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ study: buildStudyPayload() }),
+          });
+          if (response.status === 401) {
+            window.location.href = "/signin";
+            return false;
+          }
+          return response.ok;
+        } catch (error) {
+          return false;
         }
-        const savedSet = studyStorage.get(studyKeys.activeSet, null);
-        const validSaved = savedSet && studyData.sets.some((set) => set.id === savedSet);
-        studyState.selectedSetId = validSaved ? savedSet : studyData.sets[0]?.id || null;
       };
 
       const saveStudyData = () => {
-        studyStorage.set(studyKeys.sets, studyData.sets);
-        studyStorage.set(studyKeys.cards, studyData.cards);
-        studyStorage.set(studyKeys.progress, studyData.progress);
-        studyStorage.set(studyKeys.activeSet, studyState.selectedSetId);
+        void saveStudyDataToServer();
+      };
+
+      const loadStudyData = (serverData) => {
+        const serverStudy = normalizeServerStudy(serverData?.study);
+        const username = String(activeProfile.name || "").trim().toLowerCase();
+        let seededFromFallback = false;
+
+        if (hasStudyContent(serverStudy)) {
+          studyData.sets = serverStudy.sets;
+          studyData.cards = serverStudy.cards;
+          studyData.progress = serverStudy.progress;
+          studyState.selectedSetId = serverStudy.activeSet;
+        } else {
+          const legacyStudy = normalizeServerStudy({
+            sets: readLegacyStudyStorage(studyKeys.sets, []),
+            cards: readLegacyStudyStorage(studyKeys.cards, []),
+            progress: readLegacyStudyStorage(studyKeys.progress, {}),
+            activeSet: readLegacyStudyStorage(studyKeys.activeSet, null),
+          });
+          if (hasStudyContent(legacyStudy)) {
+            studyData.sets = legacyStudy.sets;
+            studyData.cards = legacyStudy.cards;
+            studyData.progress = legacyStudy.progress;
+            studyState.selectedSetId = legacyStudy.activeSet;
+            seededFromFallback = true;
+          } else if (accountSeedFallbackUsers.has(username)) {
+            const seeded = buildStudySeed();
+            studyData.sets = seeded.sets;
+            studyData.cards = seeded.cards;
+            studyData.progress = seeded.progress;
+            studyState.selectedSetId = seeded.activeSet;
+            seededFromFallback = true;
+          } else {
+            studyData.sets = [];
+            studyData.cards = [];
+            studyData.progress = {};
+            studyState.selectedSetId = null;
+          }
+        }
+
+        const validSelected =
+          studyState.selectedSetId && studyData.sets.some((set) => set.id === studyState.selectedSetId);
+        studyState.selectedSetId = validSelected ? studyState.selectedSetId : studyData.sets[0]?.id || null;
+
+        if (seededFromFallback) {
+          saveStudyData();
+        }
       };
 
       const ensureProgress = (cardId) => {
@@ -5679,11 +5929,11 @@
         }
       };
 
-      const initStudySystem = () => {
+      const initStudySystem = (serverData) => {
         if (!studyElements.root) {
           return;
         }
-        loadStudyData();
+        loadStudyData(serverData);
         setStudyStage("select");
         renderStudySets();
         renderStudyCards();
@@ -5924,19 +6174,49 @@
         renderSchedule();
       };
 
-      const loadTodos = () => {
-        const stored = readScopedOrLegacy("orbitTodos", []);
-        if (Array.isArray(stored) && stored.length) {
-          state.todos = stored;
-        } else {
-          state.todos = buildTodosSeed();
-          storage.set(scopedStorageKey("orbitTodos"), state.todos);
+      const saveTodosToServer = async () => {
+        try {
+          const response = await fetch("/api/todos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ todos: state.todos }),
+          });
+          if (response.status === 401) {
+            window.location.href = "/signin";
+            return false;
+          }
+          return response.ok;
+        } catch (error) {
+          return false;
         }
-        pruneTodos();
       };
 
       const saveTodos = () => {
-        storage.set(scopedStorageKey("orbitTodos"), state.todos);
+        void saveTodosToServer();
+      };
+
+      const loadTodos = (serverData) => {
+        const serverTodos = normalizeServerTodos(serverData?.todos);
+        const username = String(activeProfile.name || "").trim().toLowerCase();
+        let seededFromFallback = false;
+        if (serverTodos.length) {
+          state.todos = serverTodos;
+        } else {
+          const legacyTodos = normalizeServerTodos(readScopedOrLegacy("orbitTodos", []));
+          if (legacyTodos.length) {
+            state.todos = legacyTodos;
+            seededFromFallback = true;
+          } else if (accountSeedFallbackUsers.has(username)) {
+            state.todos = buildTodosSeed();
+            seededFromFallback = true;
+          } else {
+            state.todos = [];
+          }
+        }
+        const pruned = pruneTodos();
+        if (seededFromFallback || pruned) {
+          saveTodos();
+        }
       };
 
       const isPastDueDate = (dueDate) => {
@@ -5952,9 +6232,7 @@
       const pruneTodos = () => {
         const before = state.todos.length;
         state.todos = state.todos.filter((todo) => !(todo.completed && isPastDueDate(todo.dueDate)));
-        if (state.todos.length !== before) {
-          saveTodos();
-        }
+        return state.todos.length !== before;
       };
 
       const getDueStatus = (dueDate, completed) => {
@@ -5990,7 +6268,9 @@
       };
 
       const renderTodoList = () => {
-        pruneTodos();
+        if (pruneTodos()) {
+          saveTodos();
+        }
         const classFilter = elements.filterClass.value;
         const statusFilter = elements.filterStatus.value;
         const dueFilter = elements.filterDue.value;
@@ -6909,7 +7189,8 @@
         initFeedback();
 
         await loadUser();
-        initStudySystem();
+        const serverData = await loadServerData();
+        initStudySystem(serverData);
         initTodos();
 
         await loadSettings();
@@ -6919,7 +7200,6 @@
         loadScheduleExtras();
 
         await loadProfile();
-        const serverData = await loadServerData();
         if (shouldStartScheduleSetup(serverData)) {
           if (!Array.isArray(serverData.classes) || !serverData.classes.length) {
             mockData.classes = [];
@@ -6927,7 +7207,7 @@
           mockData.schedules.my = buildEmptySchedule();
           openScheduleSetup();
         }
-        loadTodos();
+        loadTodos(serverData);
         await loadChats();
         await loadFriends();
         await loadFriendRequests();

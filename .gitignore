@@ -33,5 +33,6 @@ coverage/
 # Data
 orbit-chats/
 orbit-data.json
+orbit-data.backup.json
 orbit-user.json
 feedback/
